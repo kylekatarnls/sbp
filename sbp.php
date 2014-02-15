@@ -160,6 +160,39 @@ namespace
 			return preg_quote(self::COMP.self::SUBST).$motif.preg_quote(self::SUBST.self::COMP);
 		}
 
+		static public function fileMatchnigLetter($file)
+		{
+			if(fileowner($file) === getmyuid())
+			{
+				return 'u';
+			}
+			if(filegroup($file) === getmygid())
+			{
+				return 'g';
+			}
+			return 'o';
+		}
+
+		static public function fileParse($from, $to = null)
+		{
+			if(is_null($to))
+			{
+				$to = $from;
+			}
+			if(!is_readable($from))
+			{ 
+				throw new sbpException($from." is not readable, try :\nchmod ".static::fileMatchnigLetter($from)."+r ".$from, 1);
+				return false;
+			}
+			if(!is_writable($to))
+			{ 
+				throw new sbpException($from." is not writable, try :\nchmod ".static::fileMatchnigLetter($from)."+w ".$from, 1);
+				return false;
+			}
+			file_put_contents($to, self::parse(file_get_contents($from)));
+			return true;
+		}
+
 		static public function fileExists($file)
 		{
 			$sbpFile = substr($file, 0, -4).'.sbp.php';
@@ -167,7 +200,7 @@ namespace
 			{
 				if(file_exists($sbpFile))
 				{
-					file_put_contents($file, self::parse(file_get_contents($sbpFile)));
+					self::fileParse($sbpFile, $file);
 					return true;
 				}
 			}
@@ -175,7 +208,7 @@ namespace
 			{
 				if(file_exists($sbpFile) && filemtime($sbpFile) > filemtime($file))
 				{
-					file_put_contents($file, self::parse(file_get_contents($sbpFile)));
+					self::fileParse($sbpFile, $file);
 				}
 				return true;
 			}
@@ -223,8 +256,11 @@ namespace
 				'#\#('.self::CONSTNAME.')\s*=([^;]+);#'
 					=> 'define("$1",$2);',
 
-				'#([\(;\s\.+/*=]):('.self::CONSTNAME.')#'
+				'#([\(;\s\.+/*=])~:('.self::CONSTNAME.')#'
 					=> '$1self::$2',
+
+				'#([\(;\s\.+/*=]):('.self::CONSTNAME.')#'
+					=> '$1static::$2',
 
 				'#(\n\s*)<(?![\?=])#'
 					=> '$1return ',
@@ -409,6 +445,12 @@ namespace
 
 
 	function sbp_include($file)
+	{
+		return sbp::includeFile($file);
+	}
+
+
+	function sbp($file)
 	{
 		return sbp::includeFile($file);
 	}
