@@ -184,9 +184,9 @@ namespace
 				throw new sbpException($from." is not readable, try :\nchmod ".static::fileMatchnigLetter($from)."+r ".$from, 1);
 				return false;
 			}
-			if(!is_writable($to))
+			if(!is_writable($dir = dirname($to)))
 			{ 
-				throw new sbpException($from." is not writable, try :\nchmod ".static::fileMatchnigLetter($from)."+w ".$from, 1);
+				throw new sbpException($dir." is not writable, try :\nchmod ".static::fileMatchnigLetter($dir)."+w ".$dir, 1);
 				return false;
 			}
 			file_put_contents($to, self::parse(file_get_contents($from)));
@@ -244,7 +244,7 @@ namespace
 				/* Class */
 				/*********/
 				'#(\n[\t ]*)('.self::VALIDNAME.')(?:\s*:\s*('.self::VALIDNAME.'))?(\s*{?\s*\n)#i'
-					=> ['sbp', 'parseClass'],
+					=> array('sbp', 'parseClass'),
 
 
 				/**************/
@@ -271,8 +271,8 @@ namespace
 				'#(?<![a-zA-Z0-9_])f°\s*\(#'
 					=> 'function(',
 
-				'#([\(;\s\.+/*=])>('.self::VALIDNAME.')#'
-					=> '$1$this->$2',
+				'#([\(;\s\.+/*=:+\/\*\?]\s*|return\s*|-\s+)>(\$?'.self::VALIDNAME.')#'
+					=> '$1 $this->$2',
 
 
 				/*************/
