@@ -29,23 +29,23 @@ namespace
 
 		static public function parseClass($match)
 		{
-			if(in_array($match[2], ['else', 'try', 'default:', 'echo', 'print', 'exit', 'continue', 'break', 'return', 'do']))
+			if(in_array($match[2], array('else', 'try', 'default:', 'echo', 'print', 'exit', 'continue', 'break', 'return', 'do')))
 			{
 				return $match[0];
 			}
 			return $match[1].'class '.trim($match[2]).(empty($match[3]) ? '' : ' extends '.trim($match[3])).' '.trim($match[4]).str_repeat("\n", substr_count($match[0], "\n", 1));
 		}
 
-		static private function findLastBlock(&$line, $block = [])
+		static private function findLastBlock(&$line, $block = array())
 		{
 			$pos = false;
 			if(empty($block))
 			{
-				$block = ['if', 'else', 'elseif', 'try', 'catch', 'function', 'class', 'trait', 'switch', 'while', 'for', 'foreach', 'do'];
+				$block = array('if', 'else', 'elseif', 'try', 'catch', 'function', 'class', 'trait', 'switch', 'while', 'for', 'foreach', 'do');
 			}
 			if(!is_array($block))
 			{
-				$block = [$block];
+				$block = array($block);
 			}
 			foreach($block as $word)
 			{
@@ -116,15 +116,15 @@ namespace
 			$basename = $basename ?: basename($file);
 			$name = $name ?: preg_replace('#\..+$#', '', $basename);
 			$camelCase = preg_replace_callback('#[-_]([a-z])#', function ($match) { return strtoupper($match[1]); }, $name);
-			$replace = [
+			$replace = array(
 				'{file}' => $file,
 				'{basename}' => $basename,
 				'{name}' => $name,
 				'{camelCase}' => $camelCase,
 				'{CamelCase}' => ucfirst($camelCase)
-			];
+			);
 			$GLOBALS['sbpContentTab'] = $content;
-			$container = preg_replace_callback('#(\t*){content}#', ['sbp', 'contentTab'], $container);
+			$container = preg_replace_callback('#(\t*){content}#', array('sbp', 'contentTab'), $container);
 			unset($GLOBALS['sbpContentTab']);
 			return str_replace(array_keys($replace), array_values($replace), $container);
 		}
@@ -152,7 +152,7 @@ namespace
 		static protected function stringRegex()
 		{
 			$antislash = preg_quote('\\');
-			return '".*[^'.$antislash.'](?:'.$antislash.$antislash.')*"|\'.*[^'.$antislash.'](?:'.$antislash.$antislash.')*\'';
+			return '([\'"]).*(?<!'.$antislash.')(?:'.$antislash.$antislash.')*\\1';
 		}
 
 		static protected function validSubst($motif = '[0-9]+')
@@ -227,19 +227,19 @@ namespace
 
 		static public function parse($content)
 		{
-			$GLOBALS['replaceStrings'] = [];
-			$GLOBALS['commentStrings'] = [];
+			$GLOBALS['replaceStrings'] = array();
+			$GLOBALS['commentStrings'] = array();
 			$content = str_replace(self::SUBST, self::SUBST.self::SUBST, $content);
 			$content = preg_replace('#<\?(?!php)#', '<?php', $content);
 			$content = preg_replace('#^(\s*<\?php)(\s)#', '$1 '.self::COMMENT.'$2', $content, 1, $count);
-			$content = preg_replace_callback('#'.self::COMMENTS.'|'.self::stringRegex().'|\?>.*<\?php#sU', ['sbp', 'replaceString'], $content);
+			$content = preg_replace_callback('#'.self::COMMENTS.'|'.self::stringRegex().'|\?>.*<\?php#sU', array('sbp', 'replaceString'), $content);
 			//$validsubst = self::validSubst();
 			$validComments = self::validSubst('(?:'.implode('|', $GLOBALS['commentStrings']).')');
 			if(!$count)
 			{
 				$content = '<?php '.self::COMMENT.' ?>'.$content;
 			}
-			foreach([
+			foreach(array(
 				/*********/
 				/* Class */
 				/*********/
@@ -362,7 +362,7 @@ namespace
 				'#\sgt\s#'
 					=> " > "
 
-			] as $search => $replace)
+			) as $search => $replace)
 			{
 				$content = (is_array($replace) ?
 					preg_replace_callback($search, $replace, $content) :
@@ -373,7 +373,7 @@ namespace
 				);
 			}
 			$content = explode("\n", $content);
-			$curind = [];
+			$curind = array();
 			$previousRead = '';
 			$previousWrite = '';
 			$iRead = 0;
