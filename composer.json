@@ -1,0 +1,31 @@
+{
+  "name": "kylekatarnls/sbp",
+  "type": "library",
+  "description": "Shoter Built PHP",
+  "keywords": [
+    "php",
+    "precompiler",
+    "shorter",
+    "built"
+  ],
+  "homepage": "https://github.com/kylekatarnls/sbp",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Kyle Katarn",
+      "email": "sbp@selfbuild.fr",
+      "homepage": "http://selfbuild.free.fr/sbp/"
+    }
+  ],
+  "require": {
+    "php": ">=5.3.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "3.7.*"
+  },
+  "autoload": {
+    "psr-0": {
+      "sbp": "src"
+    }
+  }
+}
