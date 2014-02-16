@@ -1,4 +1,4 @@
-<?php namespace sbp
+<?php namespace sbp\laravel
 
 class ClassLoader extends Illuminate\Support\ClassLoader
 {
@@ -8,7 +8,7 @@ class ClassLoader extends Illuminate\Support\ClassLoader
 
 		foreach (static::$directories as $directory)
 		{
-			if (sbp::fileExists($path = $directory.DIRECTORY_SEPARATOR.$class))
+			if (\sbp::fileExists($path = $directory.DIRECTORY_SEPARATOR.$class))
 			{
 				require_once $path;
 
