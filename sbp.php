@@ -12,8 +12,9 @@ namespace
 		const CONSTNAME = '[A-Z_]+';
 		const SUBST = '`';
 		const COMP = '÷';
-		const COMMENTS = '\/\/.*(?=\n)|\/\*(.|\n)*\*\/';
+		const COMMENTS = '\/\/.*(?=\n)|\/\*(?:.|\n)*\*\/';
 		const OPERATORS = '\|\||\&\&|or|and|xor|is|not|<>|lt|gt|<=|>=|\!==|===|\?\:';
+		const START = '((?:^|[\n;\{\}])(?:\/\/.*(?=\n)|\/\*(?:.|\n)*\*\/\s*)*\s*)';
 
 		static public function isSbp($file)
 		{
@@ -29,7 +30,8 @@ namespace
 
 		static public function parseClass($match)
 		{
-			if(in_array($match[2], array('else', 'try', 'default:', 'echo', 'print', 'exit', 'continue', 'break', 'return', 'do')))
+			if(in_array(substr($match[0], 0, 1), str_split(',(+-/*&|'))
+			|| in_array($match[2], array('else', 'try', 'default:', 'echo', 'print', 'exit', 'continue', 'break', 'return', 'do')))
 			{
 				return $match[0];
 			}
@@ -243,14 +245,14 @@ namespace
 				/*********/
 				/* Class */
 				/*********/
-				'#(\n[\t ]*)('.self::VALIDNAME.')(?:\s*:\s*('.self::VALIDNAME.'))?(\s*{?\s*\n)#i'
+				'#((?:^|\S\s*)\n[\t ]*)('.self::VALIDNAME.')(?:\s*:\s*('.self::VALIDNAME.'))?(\s*(?:{(?:.*})?)?\s*\n)#i'
 					=> array('sbp', 'parseClass'),
 
 
 				/**************/
 				/* Constantes */
 				/**************/
-				'#(;|\s)('.self::CONSTNAME.')\s*=#'
+				'#'.self::START.'('.self::CONSTNAME.')\s*=#'
 					=> '$1const $2 =',
 
 				'#\#('.self::CONSTNAME.')\s*=([^;]+);#'
@@ -262,10 +264,10 @@ namespace
 				'#([\(;\s\.+/*=]):('.self::CONSTNAME.')#'
 					=> '$1static::$2',
 
-				'#(\n\s*)<(?![\?=])#'
+				'#'.self::START.'<(?![\?=])#'
 					=> '$1return ',
 
-				'#(\n\s*)f\s+('.self::VALIDNAME.')#'
+				'#'.self::START.'f\s+('.self::VALIDNAME.')#'
 					=> '$1function $2',
 
 				'#(?<![a-zA-Z0-9_])f°\s*\(#'
@@ -278,35 +280,44 @@ namespace
 				/*************/
 				/* Attributs */
 				/*************/
-				'#(;|\s)-\s*(('.$validComments.'\s*)*\$'.self::VALIDNAME.')#U'
+				'#'.self::START.'-\s*(('.$validComments.'\s*)*\$'.self::VALIDNAME.')#U'
 					=> '$1private $2',
 
-				'#(;|\s)\+\s*(('.$validComments.'\s*)*\$'.self::VALIDNAME.')#U'
+				'#'.self::START.'\+\s*(('.$validComments.'\s*)*\$'.self::VALIDNAME.')#U'
 					=> '$1public $2',
 
-				'#(;|\s)\*\s*(('.$validComments.'\s*)*\$'.self::VALIDNAME.')#U'
+				'#'.self::START.'\*\s*(('.$validComments.'\s*)*\$'.self::VALIDNAME.')#U'
 					=> '$1protected $2',
+
+				'#'.self::START.'s-\s*(('.$validComments.'\s*)*\$'.self::VALIDNAME.')#U'
+					=> '$1static private $2',
+
+				'#'.self::START.'s\+\s*(('.$validComments.'\s*)*\$'.self::VALIDNAME.')#U'
+					=> '$1static public $2',
+
+				'#'.self::START.'s\*\s*(('.$validComments.'\s*)*\$'.self::VALIDNAME.')#U'
+					=> '$1static protected $2',
 
 
 				/************/
 				/* Méthodes */
 				/************/
-				'#(;|\s)\*\s*(('.$validComments.'\s*)*'.self::VALIDNAME.')#U'
+				'#'.self::START.'\*\s*(('.$validComments.'\s*)*'.self::VALIDNAME.')#U'
 					=> '$1protected function $2',
 
-				'#(;|\s)-\s*(('.$validComments.'\s*)*'.self::VALIDNAME.')#U'
+				'#'.self::START.'-\s*(('.$validComments.'\s*)*'.self::VALIDNAME.')#U'
 					=> '$1private function $2',
 
-				'#(;|\s)\+\s*(('.$validComments.'\s*)*'.self::VALIDNAME.')#U'
+				'#'.self::START.'\+\s*(('.$validComments.'\s*)*'.self::VALIDNAME.')#U'
 					=> '$1public function $2',
 
-				'#(;|\s)s\*\s*(('.$validComments.'\s*)*'.self::VALIDNAME.')#U'
+				'#'.self::START.'s\*\s*(('.$validComments.'\s*)*'.self::VALIDNAME.')#U'
 					=> '$1static protected function $2',
 
-				'#(;|\s)s-\s*(('.$validComments.'\s*)*'.self::VALIDNAME.')#U'
+				'#'.self::START.'s-\s*(('.$validComments.'\s*)*'.self::VALIDNAME.')#U'
 					=> '$1static private function $2',
 
-				'#(;|\s)s\+\s*(('.$validComments.'\s*)*'.self::VALIDNAME.')#U'
+				'#'.self::START.'s\+\s*(('.$validComments.'\s*)*'.self::VALIDNAME.')#U'
 					=> '$1static public function $2',
 
 
@@ -439,7 +450,7 @@ namespace
 				$content = str_replace(self::COMP.self::SUBST.$id.self::SUBST.self::COMP, $string, $content);
 			}
 			$content = str_replace(self::SUBST.self::SUBST, self::SUBST, $content);
-			return $content;
+			return str_replace("\r", ' ', $content);
 		}
 	}
 
