@@ -15,6 +15,7 @@ namespace sbp
 		const COMMENTS = '\/\/.*(?=\n)|\/\*(?:.|\n)*\*\/';
 		const OPERATORS = '\|\||\&\&|or|and|xor|is|not|<>|lt|gt|<=|>=|\!==|===|\?\:';
 		const START = '((?:^|[\n;\{\}])(?:\/\/.*(?=\n)|\/\*(?:.|\n)*\*\/\s*)*\s*)';
+		const ABSTRACT_SHORTCUTS = 'abstract|abst|abs|a';
 
 		static public function isSbp($file)
 		{
@@ -35,7 +36,8 @@ namespace sbp
 			{
 				return $match[0];
 			}
-			return $match[1].'class '.trim($match[2]).(empty($match[3]) ? '' : ' extends '.trim($match[3])).' '.trim($match[4]).str_repeat("\n", substr_count($match[0], "\n", 1));
+			$className = preg_replace('#^(?:'.self::ABSTRACT_SHORTCUTS.')\s+#', '', trim($match[2]), -1, $isAbstract);
+			return $match[1].($isAbstract ? 'abstract ' : '').'class '.$className.(empty($match[3]) ? '' : ' extends '.trim($match[3])).' '.trim($match[4]).str_repeat("\n", substr_count($match[0], "\n", 1));
 		}
 
 		static private function findLastBlock(&$line, $block = array())
@@ -244,7 +246,7 @@ namespace sbp
 				/*********/
 				/* Class */
 				/*********/
-				'#((?:^|\S\s*)\n[\t ]*)('.self::VALIDNAME.'(?:\\\\'.self::VALIDNAME.')*)(?:\s*:\s*('.self::VALIDNAME.'(?:\\\\'.self::VALIDNAME.')*))?(\s*(?:{(?:.*})?)?\s*\n)#i'
+				'#((?:^|\S\s*)\n[\t ]*)((?:(?:'.self::ABSTRACT_SHORTCUTS.')\s+)?(?:'.self::VALIDNAME.'\\\\)*'.self::VALIDNAME.')(?:\s*:\s*('.self::VALIDNAME.'(?:\\\\'.self::VALIDNAME.')*))?(\s*(?:{(?:.*})?)?\s*\n)#i'
 					=> array(get_class(), 'parseClass'),
 
 
