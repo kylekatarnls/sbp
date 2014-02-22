@@ -53,9 +53,9 @@ namespace sbp
 			}
 			foreach($block as $word)
 			{
-				if(preg_match('#(?<![a-zA-Z0-9$_])'.$word.'(?![a-zA-Z0-9_])#s', ' '.$line.' ', $match))
+				if(preg_match('#(?<![a-zA-Z0-9$_])'.$word.'(?![a-zA-Z0-9_])#s', $line, $match, PREG_OFFSET_CAPTURE))
 				{
-					$p = strlen($match[1]);
+					$p = $match[0][1] + 1;
 					if($pos === false || $p > $pos)
 					{
 						$pos = $p;
