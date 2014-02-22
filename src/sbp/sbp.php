@@ -446,6 +446,17 @@ namespace sbp
 				$iWrite = $index;
 			}
 			$content = implode("\n", $content);
+			if(!empty($curind))
+			{
+				if(substr($content, -1) === "\n")
+				{
+					$content .= str_repeat('}', count($curind)) . "\n";
+				}
+				else
+				{
+					$content .= "\n" . str_repeat('}', count($curind));
+				}
+			}
 			foreach($GLOBALS['replaceStrings'] as $id => $string)
 			{
 				$content = str_replace(self::COMP.self::SUBST.$id.self::SUBST.self::COMP, $string, $content);
