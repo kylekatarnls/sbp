@@ -246,7 +246,7 @@ namespace sbp
 				/*********/
 				/* Class */
 				/*********/
-				'#((?:^|\S\s*)\n[\t ]*)((?:(?:'.self::ABSTRACT_SHORTCUTS.')\s+)?(?:'.self::VALIDNAME.'\\\\)*'.self::VALIDNAME.')(?:\s*:\s*('.self::VALIDNAME.'(?:\\\\'.self::VALIDNAME.')*))?(\s*(?:{(?:.*})?)?\s*\n)#i'
+				'#((?:^|\S\s*)\n[\t ]*)((?:(?:'.self::ABSTRACT_SHORTCUTS.')\s+)?\\\\?(?:'.self::VALIDNAME.'\\\\)*'.self::VALIDNAME.')(?:\s*:\s*('.self::VALIDNAME.'(?:\\\\'.self::VALIDNAME.')*))?(\s*(?:{(?:.*})?)?\s*\n)#i'
 					=> array(get_class(), 'parseClass'),
 
 
@@ -274,7 +274,7 @@ namespace sbp
 				'#(?<![a-zA-Z0-9_])f°\s*\(#'
 					=> 'function(',
 
-				'#([\(;\s\.+/*=:+\/\*\?\&\|\!\^\~]\s*|return(?:\(\s*|\s+)|-\s+)>(\$?'.self::VALIDNAME.')#'
+				'#([\(;\s\.+/*:+\/\*\?\&\|\!\^\~]\s*|return(?:\(\s*|\s+)|[=-]\s+)>(\$?'.self::VALIDNAME.')#'
 					=> '$1$this->$2',
 
 
