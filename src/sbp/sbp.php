@@ -262,7 +262,7 @@ namespace sbp
 					'.self::VALIDNAME.'
 				)
 				(?:
-					\s*:\s*
+					(?::|\s+:\s+)
 					(
 						'.self::VALIDNAME.'
 						(?:\\\\'.self::VALIDNAME.')*
