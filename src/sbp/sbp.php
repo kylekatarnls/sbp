@@ -17,6 +17,28 @@ namespace sbp
 		const START = '((?:^|[\n;\{\}])(?:\/\/.*(?=\n)|\/\*(?:.|\n)*\*\/\s*)*\s*)';
 		const ABSTRACT_SHORTCUTS = 'abstract|abst|abs|a';
 
+		const SAME_DIR = 0x01;
+
+		static protected $destination = self::SAME_DIR;
+
+		static public function writeIn($directory = self::SAME_DIR)
+		{
+			if($directory !== self::SAME_DIR)
+			{
+				$directory = rtrim($directory, '/\\');
+				if( ! file_exists($directory))
+				{
+					throw new Exception($directory . " : path not found");
+				}
+				if( ! is_writable($directory))
+				{
+					throw new Exception($directory . " : persmission denied");
+				}
+				$directory .= DIRECTORY_SEPARATOR;
+			}
+			self::$destination = $directory;
+		}
+
 		static public function isSbp($file)
 		{
 			return (
@@ -197,22 +219,27 @@ namespace sbp
 			return file_put_contents($to, self::parse(file_get_contents($from)));
 		}
 
-		static public function fileExists($file)
+		static public function fileExists($file, &$phpFile = null)
 		{
-			$sbpFile = substr($file, 0, -4).'.sbp.php';
-			if(!file_exists($file))
+			$file = preg_replace('#(\.sbp)?(\.php)?$#', '', $file);
+			$sbpFile = $file.'.sbp.php';
+			$phpFile = (self::$destination === self::SAME_DIR ?
+				$file.'.php' :
+				self::$destination.sha1($file).'.php'
+			);
+			if(!file_exists($phpFile))
 			{
 				if(file_exists($sbpFile))
 				{
-					self::fileParse($sbpFile, $file);
+					self::fileParse($sbpFile, $phpFile);
 					return true;
 				}
 			}
 			else
 			{
-				if(file_exists($sbpFile) && filemtime($sbpFile) > filemtime($file))
+				if(file_exists($sbpFile) && filemtime($sbpFile) > filemtime($phpFile))
 				{
-					self::fileParse($sbpFile, $file);
+					self::fileParse($sbpFile, $phpFile);
 				}
 				return true;
 			}
@@ -221,12 +248,12 @@ namespace sbp
 
 		static public function includeFile($file)
 		{
-			if(!self::fileExists($file))
+			if(!self::fileExists($file, $phpFile))
 			{
 				throw new sbpException($file." not found", 1);
 				return false;
 			}
-			return include($file);
+			return include($phpFile);
 		}
 
 		static public function parse($content)

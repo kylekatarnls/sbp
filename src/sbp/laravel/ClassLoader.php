@@ -1,5 +1,7 @@
 <?php namespace sbp\laravel;
 
+use \sbp\sbp;
+
 class ClassLoader extends \Illuminate\Support\ClassLoader
 {
 	/**
@@ -14,7 +16,7 @@ class ClassLoader extends \Illuminate\Support\ClassLoader
 
 		foreach (static::$directories as $directory)
 		{
-			if (\sbp\sbp::fileExists($path = $directory.DIRECTORY_SEPARATOR.$class))
+			if (sbp::fileExists($directory.DIRECTORY_SEPARATOR.$class, $path))
 			{
 				require_once $path;
 
@@ -33,6 +35,15 @@ class ClassLoader extends \Illuminate\Support\ClassLoader
 		if ( ! static::$registered)
 		{
 			static::$registered = spl_autoload_register(array('\sbp\laravel\ClassLoader', 'load'), true, $prepend);
+			$app = $storage = __DIR__.'/../../../../../../app/';
+			sbp::writeIn(sbp::SAME_DIR);
+			sbp::fileExists($app.'routes');
+			$storage = $app . 'storage/sbp';
+			if( ! file_exists($storage))
+			{
+				mkdir($storage, 0777);
+			}
+			sbp::writeIn($storage);
 		}
 	}
 }
