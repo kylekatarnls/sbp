@@ -42,6 +42,7 @@ class ClassLoader extends \Illuminate\Support\ClassLoader
 			if( ! file_exists($storage))
 			{
 				mkdir($storage, 0777);
+				file_put_contents($storage . '/.gitignore', "*\n!.gitignore");
 			}
 			sbp::writeIn($storage);
 		}
