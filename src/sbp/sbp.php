@@ -256,6 +256,16 @@ namespace sbp
 			return include($phpFile);
 		}
 
+		static public function includeOnceFile($file)
+		{
+			if(!self::fileExists($file, $phpFile))
+			{
+				throw new sbpException($file." not found", 1);
+				return false;
+			}
+			return include_once($phpFile);
+		}
+
 		static public function parse($content)
 		{
 			$GLOBALS['replaceStrings'] = array();
@@ -527,23 +537,30 @@ namespace sbp
 namespace
 {
 
-	function sbp_include($file)
+	function sbp_include($file, $once = false)
 	{
-		return sbp\sbp::includeFile($file);
+		$method = $once ? 'includeOnceFile' : 'includeFile';
+		return sbp\sbp::$method($file);
 	}
 
 
-	function sbp($file)
+	function sbp_include_once($file)
 	{
-		return sbp\sbp::includeFile($file);
+		return sbp\sbp::includeOnceFile($file);
 	}
 
 
-	function sbp_include_if_exists($file)
+	function sbp($file, $once = false)
+	{
+		return sbp_include($file, $once);
+	}
+
+
+	function sbp_include_if_exists($file, $once = false)
 	{
 		try
 		{
-			return sbp\sbp::includeFile($file);
+			return sbp_include($file, $once);
 		}
 		catch(sbp\sbpException $e)
 		{
