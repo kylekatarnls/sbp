@@ -14,6 +14,8 @@ namespace sbp
 		const COMP = '÷';
 		const COMMENTS = '\/\/.*(?=\n)|\/\*(?:.|\n)*\*\/';
 		const OPERATORS = '\|\||\&\&|or|and|xor|is|not|<>|lt|gt|<=|>=|\!==|===|\?\:';
+		const BLOKCS = 'if|else|elseif|try|catch|function|class|trait|switch|while|for|foreach|do';
+		const IF_BLOKCS = 'if|elseif|catch|switch|while|for|foreach';
 		const START = '((?:^|[\n;\{\}])(?:\/\/.*(?=\n)|\/\*(?:.|\n)*\*\/\s*)*\s*)';
 		const ABSTRACT_SHORTCUTS = 'abstract|abst|abs|a';
 
@@ -68,7 +70,7 @@ namespace sbp
 			$pos = false;
 			if(empty($block))
 			{
-				$block = array('if', 'else', 'elseif', 'try', 'catch', 'function', 'class', 'trait', 'switch', 'while', 'for', 'foreach', 'do');
+				$block = explode('|', self::BLOKCS);
 			}
 			if(!is_array($block))
 			{
@@ -338,6 +340,9 @@ namespace sbp
 				'#(?<![a-zA-Z0-9_])f°\s*\(#'
 					=> 'function(',
 
+				'#(?<![a-zA-Z0-9_])f°\s*(\$|\{|\n|$)#'
+					=> 'function $1',
+
 				'#([\(;\s\.+/*:+\/\*\?\&\|\!\^\~]\s*|return(?:\(\s*|\s+)|[=-]\s+)>(\$?'.self::VALIDNAME.')#'
 					=> '$1$this->$2',
 
@@ -503,6 +508,9 @@ namespace sbp
 							array_pop($curind);
 						}
 					}
+					$previousRead = preg_replace('#(?<![a-zA-Z0-9_\x7f-\xff\$])('.self::IF_BLOKCS.')(?:\s+(\S.*))?\s*\{#U', '$1 ($2) {', $previousRead);
+					$previousRead = preg_replace('#(?<![a-zA-Z0-9_\x7f-\xff\$])(function\s+'.self::VALIDNAME.')\s+(\$.+)?\s*\{#U', '$1 ($2) {', $previousRead);
+					$previousRead = preg_replace('#(?<![a-zA-Z0-9_\x7f-\xff\$])function\s*(\$.+)?\s*\{#U', 'function ($1) {', $previousRead);
 					$previousRead = &$line;
 					$iRead = $index;
 				}
