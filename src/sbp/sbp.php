@@ -340,7 +340,7 @@ namespace sbp
 				'#(?<![a-zA-Z0-9_])f°\s*\(#'
 					=> 'function(',
 
-				'#(?<![a-zA-Z0-9_])f°\s*(\$|\{|\n|$)#'
+				'#(?<![a-zA-Z0-9_])f°\s*(\$|use|\{|\n|$)#'
 					=> 'function $1',
 
 				'#([\(;\s\.+/*:+\/\*\?\&\|\!\^\~]\s*|return(?:\(\s*|\s+)|[=-]\s+)>(\$?'.self::VALIDNAME.')#'
@@ -509,8 +509,10 @@ namespace sbp
 						}
 					}
 					$previousRead = preg_replace('#(?<![a-zA-Z0-9_\x7f-\xff\$])('.self::IF_BLOKCS.')(?:\s+(\S.*))?\s*\{#U', '$1 ($2) {', $previousRead);
-					$previousRead = preg_replace('#(?<![a-zA-Z0-9_\x7f-\xff\$])(function\s+'.self::VALIDNAME.')\s+(array\s.+|[A-Z\$].+)?\s*\{#U', '$1 ($2) {', $previousRead);
-					$previousRead = preg_replace('#(?<![a-zA-Z0-9_\x7f-\xff\$])function\s*(array\s.+|[A-Z\$].+)?\s*\{#U', 'function ($1) {', $previousRead);
+					$previousRead = preg_replace('#(?<![a-zA-Z0-9_\x7f-\xff\$])(function\s+'.self::VALIDNAME.')\s+(array\s.+|[A-Z\$\&].+)?\s*\{#U', '$1 ($2) {', $previousRead);
+					$previousRead = preg_replace('#(?<![a-zA-Z0-9_\x7f-\xff\$])function\s*(array\s.+|[A-Z\$\&].+)?\s*\{#U', 'function ($1) {', $previousRead);
+					$previousRead = preg_replace('#(?<![a-zA-Z0-9_\x7f-\xff\$])function\s+use(?![a-zA-Z0-9_\x7f-\xff])#U', 'function () use', $previousRead);
+					$previousRead = preg_replace('#(?<![a-zA-Z0-9_\x7f-\xff\$])(function.*[^a-zA-Z0-9_\x7f-\xff\$])use\s*((array\s.+|[A-Z\$].+)\{)#U', '$1 ) use ( $2', $previousRead);
 					$previousRead = &$line;
 					$iRead = $index;
 				}
