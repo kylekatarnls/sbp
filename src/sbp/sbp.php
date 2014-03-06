@@ -509,8 +509,8 @@ namespace sbp
 						}
 					}
 					$previousRead = preg_replace('#(?<![a-zA-Z0-9_\x7f-\xff\$])('.self::IF_BLOKCS.')(?:\s+(\S.*))?\s*\{#U', '$1 ($2) {', $previousRead);
-					$previousRead = preg_replace('#(?<![a-zA-Z0-9_\x7f-\xff\$])(function\s+'.self::VALIDNAME.')\s+(\$.+)?\s*\{#U', '$1 ($2) {', $previousRead);
-					$previousRead = preg_replace('#(?<![a-zA-Z0-9_\x7f-\xff\$])function\s*(\$.+)?\s*\{#U', 'function ($1) {', $previousRead);
+					$previousRead = preg_replace('#(?<![a-zA-Z0-9_\x7f-\xff\$])(function\s+'.self::VALIDNAME.')\s+([a-zA-Z\$].+)?\s*\{#U', '$1 ($2) {', $previousRead);
+					$previousRead = preg_replace('#(?<![a-zA-Z0-9_\x7f-\xff\$])function\s*([a-zA-Z\$].+)?\s*\{#U', 'function ($1) {', $previousRead);
 					$previousRead = &$line;
 					$iRead = $index;
 				}
