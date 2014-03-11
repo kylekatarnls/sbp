@@ -508,11 +508,6 @@ namespace sbp
 							array_pop($curind);
 						}
 					}
-					$previousRead = preg_replace('#(?<![a-zA-Z0-9_\x7f-\xff\$])('.self::IF_BLOKCS.')(?:\s+(\S.*))?\s*\{#U', '$1 ($2) {', $previousRead);
-					$previousRead = preg_replace('#(?<![a-zA-Z0-9_\x7f-\xff\$])(function\s+'.self::VALIDNAME.')\s+(array\s.+|[A-Z\$\&].+)?\s*\{#U', '$1 ($2) {', $previousRead);
-					$previousRead = preg_replace('#(?<![a-zA-Z0-9_\x7f-\xff\$])function\s*(array\s.+|[A-Z\$\&].+)?\s*\{#U', 'function ($1) {', $previousRead);
-					$previousRead = preg_replace('#(?<![a-zA-Z0-9_\x7f-\xff\$])function\s+use(?![a-zA-Z0-9_\x7f-\xff])#U', 'function () use', $previousRead);
-					$previousRead = preg_replace('#(?<![a-zA-Z0-9_\x7f-\xff\$])(function.*[^a-zA-Z0-9_\x7f-\xff\$])use\s*((array\s.+|[A-Z\$].+)\{)#U', '$1 ) use ( $2', $previousRead);
 					$previousRead = &$line;
 					$iRead = $index;
 				}
@@ -539,6 +534,16 @@ namespace sbp
 				"\r" => ' ',
 				self::SUBST.self::SUBST => self::SUBST,
 			));
+			foreach(array(
+				'#(?<![a-zA-Z0-9_\x7f-\xff\$])('.self::IF_BLOKCS.')(?:\s+(\S.*))?\s*\{#U' => '$1 ($2) {',
+				'#(?<![a-zA-Z0-9_\x7f-\xff\$])(function\s+'.self::VALIDNAME.')(?:\s+(array\s.+|[A-Z\$\&].+))?\s*\{#U' => '$1 ($2) {',
+				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function\s*(array\s.+|[A-Z\$\&].+)?\s*\{#U' => 'function ($1) {',
+				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function\s+use(?![a-zA-Z0-9_\x7f-\xff])#U' => 'function () use',
+				'#(?<![a-zA-Z0-9_\x7f-\xff\$])(function.*[^a-zA-Z0-9_\x7f-\xff\$])use\s*((array\s.+|[A-Z\$].+)\{)#U' => '$1 ) use ( $2',
+
+			) as $from => $to) {
+				$content = preg_replace($from, $to, $content);
+			}
 			return $content;
 		}
 	}
