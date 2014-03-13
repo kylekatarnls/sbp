@@ -539,9 +539,9 @@ namespace sbp
 				'#(?<![a-zA-Z0-9_\x7f-\xff\$])(function\s+'.self::VALIDNAME.')(?:\s+(array\s.+|[A-Z\$\&].+))?\s*\{#U' => '$1 ($2) {',
 				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function\s*(array\s.+|[A-Z\$\&].+)?\s*\{#U' => 'function ($1) {',
 				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function\s+use(?![a-zA-Z0-9_\x7f-\xff])#U' => 'function () use',
-				'#(?<![a-zA-Z0-9_\x7f-\xff\$])(function.*[^a-zA-Z0-9_\x7f-\xff\$])use\s*((array\s.+|[A-Z\$].+)\{)#U' => '$1 ) use ( $2',
+				'#(?<![a-zA-Z0-9_\x7f-\xff\$])(function.*[^a-zA-Z0-9_\x7f-\xff\$])use\s*((array\s.+|[A-Z\$\&].+)\{)#U' => '$1 ) use ( $2',
 				'#\((\([^\(\)]+\))\)#' => '$1',
-				'#(catch\s*\([^\)]+\)\s*)([^\s\{])' => '$1{} $2',
+				'#(catch\s*\([^\)]+\)\s*)([^\s\{])#' => '$1{} $2',
 			) as $from => $to) {
 				$content = preg_replace($from, $to, $content);
 			}
