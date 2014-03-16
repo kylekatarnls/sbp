@@ -55,14 +55,19 @@ namespace sbp
 
 		static public function parseClass($match)
 		{
-			if(in_array(substr($match[0], 0, 1), str_split(',(+-/*&|'))
-			|| in_array($match[2], array('else', 'try', 'default:', 'echo', 'print', 'exit', 'continue', 'break', 'return', 'do')))
+			list($all, $start, $class, $extend, $implement, $end) = $match;
+			$class = trim($class);
+			if(in_array(substr($all, 0, 1), str_split(',(+-/*&|'))
+			|| in_array($class, array('else', 'try', 'default:', 'echo', 'print', 'exit', 'continue', 'break', 'return', 'do')))
 			{
-				return $match[0];
+				return $all;
 			}
-			$className = preg_replace('#^(?:'.self::ABSTRACT_SHORTCUTS.')\s+#', '', trim($match[2]), -1, $isAbstract);
-			$codeLine = $match[1].($isAbstract ? 'abstract ' : '').'class '.$className.(empty($match[3]) ? '' : ' extends '.trim($match[3])).' '.trim($match[4]);
-			return $codeLine.str_repeat("\n", substr_count($match[0], "\n") - substr_count($codeLine, "\n"));
+			$className = preg_replace('#^(?:'.self::ABSTRACT_SHORTCUTS.')\s+#', '', $class, -1, $isAbstract);
+			$codeLine = $start.($isAbstract ? 'abstract ' : '').'class '.$className.
+				(empty($extend) ? '' : ' extends '.trim($extend)).
+				(empty($implement) ? '' : ' implements '.trim($implement)).
+				' '.trim($end);
+			return $codeLine.str_repeat("\n", substr_count($all, "\n") - substr_count($codeLine, "\n"));
 		}
 
 		static private function findLastBlock(&$line, $block = array())
@@ -305,6 +310,18 @@ namespace sbp
 					(
 						'.self::VALIDNAME.'
 						(?:\\\\'.self::VALIDNAME.')*
+					)
+				)?
+				(?:
+					(?:<<<|\s+<<<\s+)
+					(
+						'.self::VALIDNAME.'
+						(?:\\\\'.self::VALIDNAME.')*
+						(?:
+							\s*,\s*
+							'.self::VALIDNAME.'
+							(?:\\\\'.self::VALIDNAME.')*
+						)*
 					)
 				)?
 				(
