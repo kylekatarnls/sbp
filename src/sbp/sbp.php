@@ -23,6 +23,7 @@ namespace sbp
 		const SAME_DIR = 0x01;
 
 		static protected $destination = self::SAME_DIR;
+		static protected $lastParsedFile = null;
 
 		static public function writeIn($directory = self::SAME_DIR)
 		{
@@ -224,7 +225,10 @@ namespace sbp
 				throw new sbpException($dir." is not writable, try :\nchmod ".static::fileMatchnigLetter($dir)."+w ".$dir, 1);
 				return false;
 			}
-			return file_put_contents($to, self::parse(file_get_contents($from)));
+			static::$lastParsedFile = $from;
+			$writed = file_put_contents($to, self::parse(file_get_contents($from)));
+			static::$lastParsedFile = null;
+			return $writed;
 		}
 
 		static public function fileExists($file, &$phpFile = null)
@@ -254,6 +258,14 @@ namespace sbp
 			return false;
 		}
 
+		static public function sbpFromFile($file)
+		{
+			if(preg_match('#/*:(.+):*/#U', file_get_contents($file), $match))
+			{
+				return $match[1];
+			}
+		}
+
 		static public function includeFile($file)
 		{
 			if(!self::fileExists($file, $phpFile))
@@ -280,7 +292,7 @@ namespace sbp
 			$GLOBALS['commentStrings'] = array();
 			$content = str_replace(self::SUBST, self::SUBST.self::SUBST, $content);
 			$content = preg_replace('#<\?(?!php)#', '<?php', $content);
-			$content = preg_replace('#^(\s*<\?php)(\s)#', '$1 '.self::COMMENT.'$2', $content, 1, $count);
+			$content = preg_replace('#^(\s*<\?php)(\s)#', '$1 '.self::COMMENT.(is_null(static::$lastParsedFile) ? '' : '/*:'.static::$lastParsedFile.':*/').'$2', $content, 1, $count);
 			$content = preg_replace_callback('#'.self::COMMENTS.'|'.self::stringRegex().'|\?'.'>.*<\?php#sU', array(get_class(), 'replaceString'), $content);
 			//$validsubst = self::validSubst();
 			$validComments = self::validSubst('(?:'.implode('|', $GLOBALS['commentStrings']).')');
