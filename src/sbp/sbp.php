@@ -15,6 +15,7 @@ namespace sbp
 		const COMMENTS = '\/\/.*(?=\n)|\/\*(?:.|\n)*\*\/';
 		const OPERATORS = '\|\||\&\&|or|and|xor|is|not|<>|lt|gt|<=|>=|\!==|===|\?\:';
 		const BLOKCS = 'if|else|elseif|try|catch|function|class|trait|switch|while|for|foreach|do';
+		const MUST_CLOSE_BLOKCS = 'try|catch|function|class|trait|switch';
 		const IF_BLOKCS = 'if|elseif|catch|switch|while|for|foreach';
 		const START = '((?:^|[\n;\{\}])(?:\/\/.*(?=\n)|\/\*(?:.|\n)*\*\/\s*)*\s*)';
 		const ABSTRACT_SHORTCUTS = 'abstract|abst|abs|a';
@@ -448,11 +449,17 @@ namespace sbp
 				'#(\$.*\S)(\!\!|\!|~);#U'
 					=> "$1 = $2$1;",
 
-				'#\sis\s#'
+				'#\seq\s#'
 					=> " == ",
 
+				'#\sne\s#'
+					=> " != ",
+
+				'#\sis\s#'
+					=> " === ",
+
 				'#\snot\s#'
-					=> " == ",
+					=> " !== ",
 
 				'#\slt\s#'
 					=> " < ",
@@ -523,6 +530,13 @@ namespace sbp
 								}
 							}
 							array_pop($curind);
+						}
+					}
+					else
+					{
+						if(preg_match('#(?<![a-zA-Z0-9_\x7f-\xff$])('.self::MUST_CLOSE_BLOKCS.')(?![a-zA-Z0-9_\x7f-\xff])#', $previousRead))
+						{
+							$previousRead .= '{}';
 						}
 					}
 					$previousRead = &$line;
