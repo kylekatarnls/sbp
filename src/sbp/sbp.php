@@ -295,6 +295,14 @@ namespace sbp
 			$content = preg_replace('#^(\s*<\?php)(\s)#', '$1 '.self::COMMENT.(is_null(static::$lastParsedFile) ? '' : '/*:'.static::$lastParsedFile.':*/').'$2', $content, 1, $count);
 			$content = preg_replace_callback('#'.self::COMMENTS.'|'.self::stringRegex().'|\?'.'>.*<\?php#sU', array(get_class(), 'replaceString'), $content);
 			//$validsubst = self::validSubst();
+			$__file = is_null(static::$lastParsedFile) ? null : realpath(static::$lastParsedFile);
+			if($__file === false)
+			{
+				$__file = static::$lastParsedFile;
+			}
+			$__dir = is_null($__file) ? null : dirname($__file);
+			$__file = var_export($__file, true);
+			$__dir = var_export($__dir, true);
 			$validComments = self::validSubst('(?:'.implode('|', $GLOBALS['commentStrings']).')');
 			if(!$count)
 			{
@@ -344,6 +352,16 @@ namespace sbp
 				)
 				#xi'
 					=> array(get_class(), 'parseClass'),
+
+
+				/************************/
+				/* Constantes spéciales */
+				/************************/
+				'#(?!<[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$]|::|->)__FILE(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])#'
+					=> $__file,
+
+				'#(?!<[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$]|::|->)__DIR(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])#'
+					=> $__dir,
 
 
 				/**************/
