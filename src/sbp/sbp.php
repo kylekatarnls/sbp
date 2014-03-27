@@ -32,11 +32,11 @@ namespace sbp
 				$directory = rtrim($directory, '/\\');
 				if( ! file_exists($directory))
 				{
-					throw new Exception($directory . " : path not found");
+					throw new sbpException($directory . " : path not found");
 				}
 				if( ! is_writable($directory))
 				{
-					throw new Exception($directory . " : persmission denied");
+					throw new sbpException($directory . " : persmission denied");
 				}
 				$directory .= DIRECTORY_SEPARATOR;
 			}
