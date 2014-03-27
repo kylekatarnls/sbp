@@ -286,15 +286,56 @@ namespace sbp
 			return include_once($phpFile);
 		}
 
+		static protected function replace($content, $replace)
+		{
+			foreach($replace as $search => $replace)
+			{
+				$content = (is_callable($replace) ?
+					preg_replace_callback($search, $replace, $content) :
+					(substr($search, 0, 1) === '#' ?
+						preg_replace($search, $replace, $content) :
+						str_replace($search, $replace, $content)
+					)
+				);
+			}
+			return $content;
+		}
+
 		static public function parse($content)
 		{
 			$GLOBALS['replaceStrings'] = array();
 			$GLOBALS['commentStrings'] = array();
-			$content = str_replace(self::SUBST, self::SUBST.self::SUBST, $content);
-			$content = preg_replace('#<\?(?!php)#', '<?php', $content);
+			$content = static::replace($content, array(
+				self::SUBST => self::SUBST.self::SUBST,
+				'#<\?(?!php)#' => '<?php',
+			));
+
 			$content = preg_replace('#^(\s*<\?php)(\s)#', '$1 '.self::COMMENT.(is_null(static::$lastParsedFile) ? '' : '/*:'.static::$lastParsedFile.':*/').'$2', $content, 1, $count);
+
+			$content = static::replace($content, array(
+
+				/***********/
+				/* PHPUnit */
+				/***********/
+				'#^(\s*)(.+\s)?should\s+not\s(.+);\s*$#m'
+					=> function ($match)
+					{
+						list($all, $spaces, $before, $after) = $match;
+						return $spaces . '>assertFalse(' . $before . preg_replace('#(?<![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$])be(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])#', 'is', $after) . ', ' . var_export(trim($all), true) . ');';
+					},
+
+				'#^(\s*)(.+\s)?should\s(.+);\s*$#m'
+					=> function ($match)
+					{
+						list($all, $spaces, $before, $after) = $match;
+						return $spaces . '>assertTrue(' . $before . preg_replace('#(?<![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$])be(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])#', 'is', $after) . ', ' . var_export(trim($all), true) . ');';
+					},
+			));
+
 			$content = preg_replace_callback('#'.self::COMMENTS.'|'.self::stringRegex().'|\?'.'>.*<\?php#sU', array(get_class(), 'replaceString'), $content);
 			//$validsubst = self::validSubst();
+			$validComments = self::validSubst('(?:'.implode('|', $GLOBALS['commentStrings']).')');
+
 			$__file = is_null(static::$lastParsedFile) ? null : realpath(static::$lastParsedFile);
 			if($__file === false)
 			{
@@ -303,12 +344,13 @@ namespace sbp
 			$__dir = is_null($__file) ? null : dirname($__file);
 			$__file = var_export($__file, true);
 			$__dir = var_export($__dir, true);
-			$validComments = self::validSubst('(?:'.implode('|', $GLOBALS['commentStrings']).')');
+
 			if(!$count)
 			{
 				$content = '<?php '.self::COMMENT.' ?>'.$content;
 			}
-			foreach(array(
+
+			$content = static::replace($content, array(
 				/*********/
 				/* Class */
 				/*********/
@@ -357,10 +399,10 @@ namespace sbp
 				/************************/
 				/* Constantes spéciales */
 				/************************/
-				'#(?!<[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$]|::|->)__FILE(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])#'
+				'#(?<![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$]|::|->)__FILE(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])#'
 					=> $__file,
 
-				'#(?!<[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$]|::|->)__DIR(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])#'
+				'#(?<![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$]|::|->)__DIR(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])#'
 					=> $__dir,
 
 
@@ -497,16 +539,7 @@ namespace sbp
 				'#\sgt\s#'
 					=> " > "
 
-			) as $search => $replace)
-			{
-				$content = (is_array($replace) ?
-					preg_replace_callback($search, $replace, $content) :
-					(substr($search, 0, 1) === '#' ?
-						preg_replace($search, $replace, $content) :
-						str_replace($search, $replace, $content)
-					)
-				);
-			}
+			));
 			$content = explode("\n", $content);
 			$curind = array();
 			$previousRead = '';
