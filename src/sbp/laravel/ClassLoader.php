@@ -30,7 +30,7 @@ class ClassLoader extends \Illuminate\Support\ClassLoader
 	 *
 	 * @return void
 	 */
-	public static function register($prepend = true)
+	public static function register($prepend = true, $callback = null)
 	{
 		if ( ! static::$registered)
 		{
@@ -44,7 +44,7 @@ class ClassLoader extends \Illuminate\Support\ClassLoader
 				mkdir($storage, 0777);
 				file_put_contents($storage . '/.gitignore', "*\n!.gitignore");
 			}
-			sbp::writeIn($storage);
+			sbp::writeIn($storage, $callback);
 		}
 	}
 }
