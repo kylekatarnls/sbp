@@ -371,6 +371,7 @@ namespace sbp
 				(?:
 					(?::|\s+:\s+)
 					(
+						\\\\?
 						'.self::VALIDNAME.'
 						(?:\\\\'.self::VALIDNAME.')*
 					)
@@ -378,10 +379,12 @@ namespace sbp
 				(?:
 					(?:<<<|\s+<<<\s+)
 					(
+						\\\\?
 						'.self::VALIDNAME.'
 						(?:\\\\'.self::VALIDNAME.')*
 						(?:
 							\s*,\s*
+							\\\\?
 							'.self::VALIDNAME.'
 							(?:\\\\'.self::VALIDNAME.')*
 						)*
