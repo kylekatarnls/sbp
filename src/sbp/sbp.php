@@ -366,17 +366,20 @@ namespace sbp
 					=> array(get_class(), 'replaceString'),
 
 
+				'#(?<=\s|^)should\s+not(?=\s)$#mU'
+					=> 'should not',
+
 				/*************************************/
 				/* should key-word fo PHPUnit assert */
 				/*************************************/
-				'#^(\s*)(\S.*\s)?should\s+not\s(.*[^;]);*\s*$#mU'
+				'#^(\s*)(\S.*\s)?should\snot\s(.*[^;]);*\s*$#mU'
 					=> function ($match)
 					{
 						list($all, $spaces, $before, $after) = $match;
 						return $spaces . '>assertFalse(' . $before . preg_replace('#(?<![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$])be(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])#', 'is', $after) . ', ' . var_export(trim($all), true) . ');';
 					},
 
-				'#^(\s*)(\S.*\s)?should\s(.*[^;]);*\s*$#mU'
+				'#^(\s*)(\S.*\s)?should(?!\snot)\s(.*[^;]);*\s*$#mU'
 					=> function ($match)
 					{
 						list($all, $spaces, $before, $after) = $match;
