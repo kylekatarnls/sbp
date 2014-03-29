@@ -687,6 +687,8 @@ namespace sbp
 					=> '$1;$2',
 				'#(' . $validSubst . '|[a-zA-Z0-9_\x7f-\xff\)])(?<!<\?php|<\?)(\s*(?:' . $validComments . '\s*)*)$#U'
 					=> '$1;$2',
+				'#(' . $validSubst . '|[a-zA-Z0-9_\x7f-\xff\)])(?<!<\?php|<\?)(\s*(?:' . $validComments . '\s*)*\?>)$#U'
+					=> '$1;$2',
 			));
 			foreach($GLOBALS['replaceStrings'] as $id => $string)
 			{
