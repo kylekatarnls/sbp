@@ -191,6 +191,10 @@ namespace sbp
 			{
 				$GLOBALS['commentStrings'][] = $id;
 			}
+			elseif(strpos($match[0], '?') === 0)
+			{
+				$GLOBALS['htmlCodes'][] = $id;
+			}
 			else
 			{
 				$GLOBALS['quotedStrings'][] = $id;
@@ -321,28 +325,58 @@ namespace sbp
 		static public function parse($content)
 		{
 			$GLOBALS['replaceStrings'] = array();
+			$GLOBALS['htmlCodes'] = array();
 			$GLOBALS['quotedStrings'] = array();
 			$GLOBALS['commentStrings'] = array();
-			$content = static::replace($content, array(
-				self::SUBST => self::SUBST.self::SUBST,
-				'#<\?(?!php)#' => '<?php',
-			));
 
-			$content = preg_replace('#^(\s*<\?php)(\s)#', '$1 '.self::COMMENT.(is_null(static::$lastParsedFile) ? '' : '/*:'.static::$lastParsedFile.':*/').'$2', $content, 1, $count);
+			$content = static::replace(
 
-			$content = static::replace($content, array(
+				/*****************************************/
+				/* Mark the compiled file with a comment */
+				/*****************************************/
+				'<?php '.self::COMMENT.(is_null(static::$lastParsedFile) ? '' : '/*:'.static::$lastParsedFile.':*/').' ?>'.
+				$content, array(
 
-				/***********/
-				/* PHPUnit */
-				/***********/
-				'#^(\s*)(.+\s)?should\s+not\s(.+);\s*$#m'
+
+				/***************************/
+				/* Complete PHP shrot-tags */
+				/***************************/
+				'#<\?(?!php)#'
+					=> '<?php',
+
+
+				/***************************/
+				/* Remove useless PHP tags */
+				/***************************/
+				'#\?><\?php#'
+					=> '',
+
+
+				/*******************************/
+				/* Escape the escape-character */
+				/*******************************/
+				self::SUBST
+					=> self::SUBST.self::SUBST,
+
+
+				/*************************************************************/
+				/* Save the comments, quoted string and HTML out of PHP tags */
+				/*************************************************************/
+				'#'.self::COMMENTS.'|'.self::stringRegex().'|\?>.+<\?php#sU'
+					=> array(get_class(), 'replaceString'),
+
+
+				/*************************************/
+				/* should key-word fo PHPUnit assert */
+				/*************************************/
+				'#^(\s*)(\S.*\s)?should\s+not\s(.*[^;]);*\s*$#mU'
 					=> function ($match)
 					{
 						list($all, $spaces, $before, $after) = $match;
 						return $spaces . '>assertFalse(' . $before . preg_replace('#(?<![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$])be(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])#', 'is', $after) . ', ' . var_export(trim($all), true) . ');';
 					},
 
-				'#^(\s*)(.+\s)?should\s(.+);\s*$#m'
+				'#^(\s*)(\S.*\s)?should\s(.*[^;]);*\s*$#mU'
 					=> function ($match)
 					{
 						list($all, $spaces, $before, $after) = $match;
@@ -350,7 +384,6 @@ namespace sbp
 					},
 			));
 
-			$content = preg_replace_callback('#'.self::COMMENTS.'|'.self::stringRegex().'|\?'.'>.*<\?php#sU', array(get_class(), 'replaceString'), $content);
 			$validSubst = self::validSubst('(?:'.implode('|', $GLOBALS['quotedStrings']).')');
 			$validComments = self::validSubst('(?:'.implode('|', $GLOBALS['commentStrings']).')');
 
@@ -363,12 +396,8 @@ namespace sbp
 			$__file = var_export($__file, true);
 			$__dir = var_export($__dir, true);
 
-			if(!$count)
-			{
-				$content = '<?php '.self::COMMENT.' ?>'.$content;
-			}
-
 			$content = static::replace($content, array(
+
 				/*********/
 				/* Class */
 				/*********/
@@ -427,9 +456,9 @@ namespace sbp
 					=> $__dir,
 
 
-				/**************/
-				/* Constantes */
-				/**************/
+				/*************/
+				/* Constants */
+				/*************/
 				'#'.self::START.'('.self::CONSTNAME.')\s*=#'
 					=> '$1const $2 =',
 
@@ -442,6 +471,10 @@ namespace sbp
 				'#([\(;\s\.+/*=]):('.self::CONSTNAME.')#'
 					=> '$1static::$2',
 
+
+				/*************/
+				/* Functions */
+				/*************/
 				'#'.self::START.'<(?![\?=])#'
 					=> '$1return ',
 
@@ -454,13 +487,17 @@ namespace sbp
 				'#(?<![a-zA-Z0-9_])f°\s*(\$|use|\{|\n|$)#'
 					=> 'function $1',
 
+
+				/****************/
+				/* > to $this-> */
+				/****************/
 				'#([\(;\s\.+/*:+\/\*\?\&\|\!\^\~]\s*|return(?:\(\s*|\s+)|[=-]\s+)>(\$?'.self::VALIDNAME.')#'
 					=> '$1$this->$2',
 
 
-				/*************/
-				/* Attributs */
-				/*************/
+				/**************/
+				/* Attributes */
+				/**************/
 				'#'.self::START.'-\s*(('.$validComments.'\s*)*\$'.self::VALIDNAME.')#U'
 					=> '$1private $2',
 
@@ -480,9 +517,9 @@ namespace sbp
 					=> '$1static protected $2',
 
 
-				/************/
-				/* Méthodes */
-				/************/
+				/***********/
+				/* Methods */
+				/***********/
 				'#'.self::START.'\*\s*(('.$validComments.'\s*)*'.self::VALIDNAME.')#U'
 					=> '$1protected function $2',
 
@@ -518,9 +555,9 @@ namespace sbp
 					=> "break;",
 
 
-				/***************/
-				/* Assignation */
-				/***************/
+				/***********/
+				/* Summons */
+				/***********/
 				'#(\$.*\S)\s*\*\*=\s*('.self::VALIDNAME.')\s*\(\s*\)#U'
 					=> "$1 = $2($1)",
 
@@ -542,6 +579,10 @@ namespace sbp
 				'#(\$.*\S)(\!\!|\!|~);#U'
 					=> "$1 = $2$1;",
 
+
+				/***************/
+				/* Comparisons */
+				/***************/
 				'#\seq\s#'
 					=> " == ",
 
