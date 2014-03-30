@@ -12,7 +12,7 @@ class MathTest extends \PHPUnit_Framework_TestCase {
 		// be après should devient is pour une conjugaison correcte dans le code
 		$this->assertTrue(strtolower('ABC') === 'abc', 'strtolower('ABC') should be 'abc'');
 		// message personnalisé
-		$this->assertTrue(strtolower('ABC') === 'abc', "strtolower devrait transformer ABC en abc");
+		$this->assertTrue(strtolower('ABC') === 'abc', "strtolower devrait transformer ABC en abc", 'strtolower('ABC') should be 'abc', "strtolower devrait transformer ABC en abc"');
 		// be, is et === sont sensibles aux types
 		$this->assertFalse(7 === "7", '7 should !== be "7"');
 }}

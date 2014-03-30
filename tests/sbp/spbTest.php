@@ -33,10 +33,20 @@ class sbpTest extends \PHPUnit_Framework_TestCase
 		{
 			$message = "sbp::fileParse(\"$from\") do match the compiled file";
 		}
-		$to = str_replace(array("\n", "\r", "\t", ' '), '', trim(file_get_contents($from)));
-		$from = str_replace(array("\n", "\r", "\t", ' '), '', trim(sbp::testContent(preg_replace('#^(.+)(/[^/]+)$#', '$1/.src$2', $from))));
+		$out = trim(file_get_contents($from));
+		$in = trim(sbp::testContent(preg_replace('#^(.+)(/[^/]+)$#', '$1/.src$2', $from)));
+		$to = str_replace(array("\n", "\r", "\t", ' '), '', $out);
+		$from = str_replace(array("\n", "\r", "\t", ' '), '', $in);
 		$to = preg_replace('#/\*.*\*/#U', '', $to);
 		$from = preg_replace('#/\*.*\*/#U', '', $from);
+		if($from !== $to)
+		{
+			echo "\n\n";
+			echo htmlspecialchars($in);
+			echo "\n\n";
+			echo htmlspecialchars($out);
+			echo "\n\n";
+		}
 		return $this->assertTrue($from === $to, $message);
 	}
 
