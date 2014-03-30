@@ -371,24 +371,24 @@ namespace sbp
 					=> array(get_class(), 'replaceString'),
 
 
-				'#(?<=\s|^)should\s+not(?=\s)$#mU'
-					=> 'should not',
-
 				/*************************************/
 				/* should key-word fo PHPUnit assert */
 				/*************************************/
+				'#(?<=\s|^)should\s+not(?=\s)$#mU'
+					=> 'should not',
+
 				'#^(\s*)(\S.*\s)?should\snot\s(.*[^;]);*\s*$#mU'
 					=> function ($match)
 					{
 						list($all, $spaces, $before, $after) = $match;
-						return $spaces . '>assertFalse(' . $before . preg_replace('#(?<![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$])be(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])#', 'is', $after) . ', ' . var_export(trim($all), true) . ');';
+						return $spaces . '>assertFalse(' . $before . preg_replace('#(?<![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$])be(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])#', 'is', $after) . ', \'\'\'\'' . trim($all) . '\'\'\'\');';
 					},
 
 				'#^(\s*)(\S.*\s)?should(?!\snot)\s(.*[^;]);*\s*$#mU'
 					=> function ($match)
 					{
 						list($all, $spaces, $before, $after) = $match;
-						return $spaces . '>assertTrue(' . $before . preg_replace('#(?<![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$])be(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])#', 'is', $after) . ', ' . var_export(trim($all), true) . ');';
+						return $spaces . '>assertTrue(' . $before . preg_replace('#(?<![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$])be(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])#', 'is', $after) . ', \'\'\'\'' . trim($all) . '\'\'\'\');';
 					},
 			));
 
@@ -693,7 +693,6 @@ namespace sbp
 			$beforeSemiColon = '(' . $validSubst . '|\+\+|--|[a-zA-Z0-9_\x7f-\xff]!|[a-zA-Z0-9_\x7f-\xff]~|!!|[a-zA-Z0-9_\x7f-\xff\)])(?<!<\?php|<\?)';
 			$content = static::replace($content, array(
 
-
 				/******************************/
 				/* Complete with a semi-colon */
 				/******************************/
@@ -705,29 +704,46 @@ namespace sbp
 
 				'#' . $beforeSemiColon . '(\s*(?:' . $validComments . '\s*)*\?>)$#U'
 					=> '$1;$2',
+
 			));
 			foreach($GLOBALS['replaceStrings'] as $id => $string)
 			{
 				$content = str_replace(self::COMP.self::SUBST.$id.self::SUBST.self::COMP, $string, $content);
 			}
 			$content = static::replace($content, array(
+
+				'#(?<!\')\'\'\'\'(.+)\'\'\'\'(?!\')#U'
+					=> function ($match)
+					{
+						return var_export($match[1], true);
+					},
+
 				"\r" => ' ',
+
 				self::SUBST.self::SUBST
 					=> self::SUBST,
+
 				'#(?<![a-zA-Z0-9_\x7f-\xff\$])('.self::IF_BLOKCS.')(?:\s+(\S.*))?\s*\{#U'
 					=> '$1 ($2) {',
+
 				'#(?<![a-zA-Z0-9_\x7f-\xff\$])(function\s+'.self::VALIDNAME.')(?:\s+(array\s.+|[A-Z\$\&].+))?\s*\{#U'
 					=> '$1 ($2) {',
+
 				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function\s*(array\s.+|[A-Z\$\&].+)?\s*\{#U'
 					=> 'function ($1) {',
+
 				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function\s+use(?![a-zA-Z0-9_\x7f-\xff])#U'
 					=> 'function () use',
+
 				'#(?<![a-zA-Z0-9_\x7f-\xff\$])(function.*[^a-zA-Z0-9_\x7f-\xff\$])use\s*((array\s.+|[A-Z\$\&].+)\{)#U'
 					=> '$1 ) use ( $2',
+
 				'#\((\([^\(\)]+\))\)#'
 					=> '$1',
+
 				'#(catch\s*\([^\)]+\)\s*)([^\s\{])#'
 					=> '$1{} $2',
+
 			));
 			return $content;
 		}

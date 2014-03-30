@@ -41,11 +41,21 @@ class sbpTest extends \PHPUnit_Framework_TestCase
 		$from = preg_replace('#/\*.*\*/#U', '', $from);
 		if($from !== $to)
 		{
-			echo "\n\n";
-			echo htmlspecialchars($in);
-			echo "\n\n";
-			echo htmlspecialchars($out);
-			echo "\n\n";
+			echo "\n";
+			$in = preg_split('#\r\n|\r|\n#', $in);
+			$out = preg_split('#\r\n|\r|\n#', $out);
+			foreach($in as $key => $line)
+			{
+				if(preg_replace('#/\*.*\*/#U', '', $line) === preg_replace('#/\*.*\*/#U', '', $out[$key]))
+				{
+					echo " ".str_replace("\t", '    ', $line)."\n";
+				}
+				else
+				{
+					echo "-".str_replace("\t", '    ', $line)."\n";
+					echo "+".str_replace("\t", '    ', $out[$key])."\n";
+				}
+			}
 		}
 		return $this->assertTrue($from === $to, $message);
 	}
