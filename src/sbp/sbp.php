@@ -322,6 +322,11 @@ namespace sbp
 			return $content;
 		}
 
+		static public function validVar($parentheses = 0)
+		{
+			return '(?<!\$)(\$+[^\$\n\r]+(?:[\[\{]((?>[^\[\{\]\}]+)|(?-'.($parentheses + 2).'))*[\]\}])?)(?![a-zA-Z0-9_\x7f-\xff\$\[\{])';
+		}
+
 		static public function parse($content)
 		{
 			$GLOBALS['replaceStrings'] = array();
@@ -567,7 +572,7 @@ namespace sbp
 				'#(\$.*\S)\s*\*\*=\s*('.self::VALIDNAME.')\s*\(#U'
 					=> "$1 = $2($1, ",
 
-				'#([\(;\s\.+/*=])('.self::VALIDNAME.')\s*\(\s*\*\*\s*(\$[^\),]+)#'
+				'#([\(;\s\.+/*=\r\n]\s*)('.self::VALIDNAME.')\s*\(\s*\*\*\s*(\$[^\),]+)#'
 					=> "$1$3 = $2($3",
 
 				'#(\$.*\S)\s*\(\s*('.self::OPERATORS.')=\s*(\S)#U'
@@ -576,11 +581,11 @@ namespace sbp
 				'#(\$.*\S)\s*('.self::OPERATORS.')=\s*(\S)#U'
 					=> "$1 = $1 $2 $3",
 
-				'#(\$.*\S)\s*\!\?=\s*(\S[^;]*;)#U'
+				'#('.self::validVar().')\s*\!\?=\s*(\S[^;]*)(?=[;\n\r]|\$)#U'
 					=> "if(!$1) { $1 = $2 }",
 
-				'#(\$.*\S)(\!\!|\!|~);#U'
-					=> "$1 = $2$1;",
+				'#('.self::validVar().')((?:\!\!|\!|~)\s*)(?=[\r\n;])#U'
+					=> "$1 = $4$1",
 
 
 				/***************/
@@ -602,7 +607,7 @@ namespace sbp
 					=> " < ",
 
 				'#\sgt\s#'
-					=> " > "
+					=> " > ",
 
 			));
 			$content = explode("\n", $content);
@@ -687,10 +692,17 @@ namespace sbp
 			}
 			$beforeSemiColon = '(' . $validSubst . '|\+\+|--|[a-zA-Z0-9_\x7f-\xff]!|[a-zA-Z0-9_\x7f-\xff]~|!!|[a-zA-Z0-9_\x7f-\xff\)])(?<!<\?php|<\?)';
 			$content = static::replace($content, array(
+
+
+				/******************************/
+				/* Complete with a semi-colon */
+				/******************************/
 				'#' . $beforeSemiColon . '(\s*(?:' . $validComments . '\s*)*[\n\r]+\s*(?:' . $validComments . '\s*)*)(?=[a-zA-Z0-9_\x7f-\xff\$\}]|$)#U'
 					=> '$1;$2',
+
 				'#' . $beforeSemiColon . '(\s*(?:' . $validComments . '\s*)*)$#U'
 					=> '$1;$2',
+
 				'#' . $beforeSemiColon . '(\s*(?:' . $validComments . '\s*)*\?>)$#U'
 					=> '$1;$2',
 			));

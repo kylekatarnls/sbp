@@ -1,0 +1,14 @@
+<?
+
+{CamelCase}:Object
+
+	{content}
+
+	+ __destruct
+
+		log("{file}")
+		// {basename}
+		// {name}
+		// {camelCase}
+
+?>
