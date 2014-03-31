@@ -690,13 +690,13 @@ namespace sbp
 					$content .= "\n" . str_repeat('}', count($curind));
 				}
 			}
-			$beforeSemiColon = '(' . $validSubst . '|\+\+|--|[a-zA-Z0-9_\x7f-\xff]!|[a-zA-Z0-9_\x7f-\xff]~|!!|[a-zA-Z0-9_\x7f-\xff\)])(?<!<\?php|<\?)';
+			$beforeSemiColon = '(' . $validSubst . '|\+\+|--|[a-zA-Z0-9_\x7f-\xff]!|[a-zA-Z0-9_\x7f-\xff]~|!!|[a-zA-Z0-9_\x7f-\xff\)\]])(?<!<\?php|<\?)';
 			$content = static::replace($content, array(
 
 				/******************************/
 				/* Complete with a semi-colon */
 				/******************************/
-				'#' . $beforeSemiColon . '(\s*(?:' . $validComments . '\s*)*[\n\r]+\s*(?:' . $validComments . '\s*)*)(?=[a-zA-Z0-9_\x7f-\xff\$\}\]]|$)#U'
+				'#' . $beforeSemiColon . '(\s*(?:' . $validComments . '\s*)*[\n\r]+\s*(?:' . $validComments . '\s*)*)(?=[a-zA-Z0-9_\x7f-\xff\$\}]|$)#U'
 					=> '$1;$2',
 
 				'#' . $beforeSemiColon . '(\s*(?:' . $validComments . '\s*)*)$#U'
