@@ -597,6 +597,9 @@ namespace sbp
 				'#('.self::validVar().')\s*\!\?=\s*(\S[^;]*)(?=[;\n\r]|\$)#U'
 					=> "if(!$1) { $1 = $4; }",
 
+				'#('.self::validVar().')\s*<->\s*('.self::validVar().')#U'
+					=> "\$_sv = $4; $1 = \$_sv; unset(\$_sv)",
+
 				'#('.self::validVar().')((?:\!\!|\!|~)\s*)(?=[\r\n;])#U'
 					=> "$1 = $4$1",
 
