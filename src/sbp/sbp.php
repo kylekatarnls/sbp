@@ -14,6 +14,7 @@ namespace sbp
 		const COMP = '`';
 		const COMMENTS = '\/\/.*(?=\n)|\/\*(?:.|\n)*\*\/';
 		const OPERATORS = '\|\||\&\&|or|and|xor|is|not|<>|lt|gt|<=|>=|\!==|===|\?\:';
+		const PHP_WORDS = 'true|false|null|echo|exit|include|require|include_once|require_once';
 		const BLOKCS = 'if|else|elseif|try|catch|function|class|trait|switch|while|for|foreach|do';
 		const MUST_CLOSE_BLOKCS = 'try|catch|function|class|trait|switch';
 		const IF_BLOKCS = 'if|elseif|catch|switch|while|for|foreach';
@@ -69,7 +70,10 @@ namespace sbp
 			list($all, $start, $class, $extend, $implement, $end) = $match;
 			$class = trim($class);
 			if(in_array(substr($all, 0, 1), str_split(',(+-/*&|'))
-			|| in_array($class, array('else', 'try', 'default:', 'echo', 'print', 'exit', 'continue', 'break', 'return', 'do')))
+			|| in_array($class, array_merge(
+				array('else', 'try', 'default:', 'echo', 'print', 'exit', 'continue', 'break', 'return', 'do'),
+				explode('|', self::PHP_WORDS)
+			)))
 			{
 				return $all;
 			}
