@@ -16,6 +16,8 @@ $a !=== "bar"
 $a ?:= "default value"
 // Équivalent pour PHP < 5.3
 $a !?= "default value"
+// Set default value only if it not set
+$a !?== "default value"
 
 /*
  * is, not, lt et gt sont aussi

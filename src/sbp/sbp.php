@@ -14,7 +14,7 @@ namespace sbp
 		const COMP = '`';
 		const COMMENTS = '\/\/.*(?=\n)|\/\*(?:.|\n)*\*\/';
 		const OPERATORS = '\|\||\&\&|or|and|xor|is|not|<>|lt|gt|<=|>=|\!==|===|\?\:';
-		const PHP_WORDS = 'true|false|null|echo|exit|include|require|include_once|require_once';
+		const PHP_WORDS = 'true|false|null|echo|exit|include|require|include_once|require_once|use|exit|continue|return|break';
 		const BLOKCS = 'if|else|elseif|try|catch|function|class|trait|switch|while|for|foreach|do';
 		const MUST_CLOSE_BLOKCS = 'try|catch|function|class|trait|switch';
 		const IF_BLOKCS = 'if|elseif|catch|switch|while|for|foreach';
@@ -331,6 +331,13 @@ namespace sbp
 			return '(?<!\$)(\$+[^\$\n\r]+(?:[\[\{]((?>[^\[\{\]\}]+)|(?-'.($parentheses + 2).'))*[\]\}])?)(?![a-zA-Z0-9_\x7f-\xff\$\[\{])';
 		}
 
+		static public function arrayShortSyntax($match)
+		{
+			return 'array(' . 
+				preg_replace('#^([\t ]*)('.self::VALIDNAME.')([\t ]*=)#m', '$1 \'$2\'$3>', $match[1]) .
+			')';
+		}
+
 		static public function parse($content)
 		{
 			$GLOBALS['replaceStrings'] = array();
@@ -585,16 +592,16 @@ namespace sbp
 				'#(\$.*\S)\s*('.self::OPERATORS.')=\s*(\S)#U'
 					=> "$1 = $1 $2 $3",
 
-				'#('.self::validVar().')\s*\!\?==\s*(\S[^;]*);#U'
+				'#('.self::validVar().')\s*\!\?==\s*(\S[^;\n\r]*);#U'
 					=> "if(!isset($1)) { $1 = $4; }",
 
-				'#('.self::validVar().')\s*\!\?==\s*(\S[^;]*)(?=[;\n\r]|\$)#U'
+				'#('.self::validVar().')\s*\!\?==\s*(\S[^;\n\r]*)(?=[;\n\r]|\$)#U'
 					=> "if(!isset($1)) { $1 = $4; }",
 
-				'#('.self::validVar().')\s*\!\?=\s*(\S[^;]*);#U'
+				'#('.self::validVar().')\s*\!\?=\s*(\S[^;\n\r]*);#U'
 					=> "if(!$1) { $1 = $4; }",
 
-				'#('.self::validVar().')\s*\!\?=\s*(\S[^;]*)(?=[;\n\r]|\$)#U'
+				'#('.self::validVar().')\s*\!\?=\s*(\S[^;\n\r]*)(?=[;\n\r]|\$)#U'
 					=> "if(!$1) { $1 = $4; }",
 
 				'#('.self::validVar().')\s*<->\s*('.self::validVar().')#U'
@@ -624,6 +631,13 @@ namespace sbp
 
 				'#\sgt\s#'
 					=> " > ",
+
+
+				/**********************/
+				/* Array short syntax */
+				/**********************/
+				'#{(\s*(?:\n+[\t ]*'.self::VALIDNAME.'[\t ]*=[^\n]+)*\s*)}#'
+					=> array(get_class(), 'arrayShortSyntax'),
 
 			));
 			$content = explode("\n", $content);

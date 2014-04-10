@@ -15,7 +15,9 @@ $a = $a === "foo";
 $a = $a !== "bar";
 $a = $a ?: "default value";
 // Équivalent pour PHP < 5.3
-if(!$a) { $a = $a }
+if(!$a) { $a = "default value"; }
+// Set default value only if it not set
+if(!isset($a)) { $a = "default value"; }
 
 /*
  * is, not, lt et gt sont aussi
