@@ -333,8 +333,8 @@ namespace sbp
 
 		static public function arrayShortSyntax($match)
 		{
-			return 'array(' . 
-				preg_replace('#^([\t ]*)('.self::VALIDNAME.')([\t ]*=)#m', '$1 \'$2\'$3>', $match[1]) .
+			return 'array(' .
+				preg_replace('#,(\s*)$#', '$1', preg_replace('#^([\t ]*)('.self::VALIDNAME.')([\t ]*=)(.*[^,]),?(?=[\r\n]|$)#mU', '$1 \'$2\'$3>$4,', $match[1])) .
 			')';
 		}
 
