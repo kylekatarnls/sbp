@@ -435,7 +435,7 @@ namespace sbp
 					'.self::VALIDNAME.'
 				)
 				(?:
-					(?::|\s+:\s+)
+					(?::|\s+:\s+|\s+extends\s+)
 					(
 						\\\\?
 						'.self::VALIDNAME.'
@@ -443,7 +443,7 @@ namespace sbp
 					)
 				)?
 				(?:
-					(?:<<<|\s+<<<\s+)
+					(?:<<<|\s+<<<\s+|\s+implements\s+)
 					(
 						\\\\?
 						'.self::VALIDNAME.'
