@@ -497,6 +497,9 @@ namespace sbp
 				'#'.self::START.'<(?![\?=])#'
 					=> '$1return ',
 
+				'#'.self::START.'@f\s+('.self::VALIDNAME.')#'
+					=> '$1if-defined-function $2',
+
 				'#'.self::START.'f\s+('.self::VALIDNAME.')#'
 					=> '$1function $2',
 
@@ -722,6 +725,9 @@ namespace sbp
 			}
 			$beforeSemiColon = '(' . $validSubst . '|\+\+|--|[a-zA-Z0-9_\x7f-\xff]!|[a-zA-Z0-9_\x7f-\xff]~|!!|[a-zA-Z0-9_\x7f-\xff\)\]])(?<!<\?php|<\?)';
 			$content = static::replace($content, array(
+
+				'#if-defined-(function\s+('.self::VALIDNAME.')([^\{]*)(?:\{((?>[^\{\}]+)|(?-4))*\}))#U'
+					=> 'if(function_exists(\'$2\')) { $1 }',
 
 				/******************************/
 				/* Complete with a semi-colon */
