@@ -15,3 +15,6 @@ MathTest:\PHPUnit_Framework_TestCase
 		strtolower('ABC') should be 'abc', "strtolower devrait transformer ABC en abc"
 		// be, is et === sont sensibles aux types
 		7 should not be "7"
+		// should return = should be
+		gettype(7) should return "int"
+		gettype(7) should not return "string"
