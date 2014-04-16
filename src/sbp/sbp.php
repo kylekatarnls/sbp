@@ -382,6 +382,7 @@ namespace sbp
 
 		static public function parse($content)
 		{
+			return $content;
 			$GLOBALS['replaceStrings'] = array();
 			$GLOBALS['htmlCodes'] = array();
 			$GLOBALS['quotedStrings'] = array();
