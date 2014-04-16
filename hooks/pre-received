@@ -1,35 +1,35 @@
-#!/bin/bash
-while read oldrev newrev refname
-do
-    # Only run this script for the master branch. You can remove this 
-    # if block if you wish to run it for others as well.
-    if [[ $refname = "refs/heads/master" ]] ; then
-        # Anything echo'd will show up in the console for the person 
-        # who's doing a push
-        echo "Preparing to run phpunit for $newrev ... "
+#!/usr/bin/php
+<?php
+// Hook configuration
+$project = 'My Test';
  
-        # Since the repo is bare, we need to put the actual files someplace, 
-        # so we use the temp dir we chose earlier
-        git archive $newrev | tar -x -C /home/jani/tmp/example
+// Tell the commiter what the hook is doing
+echo PHP_EOL;
+echo '+ Starting unit tests'.PHP_EOL;
  
-        echo "Running phpunit for $newrev ... "
+// Execute project unit tests
+exec('phpunit ' . realpath(__DIR__ . '/..'), $output, $returnCode);
  
-        # This part is the actual code which is used to run our tests
-        # In my case, the phpunit testsuite resides in the tests directory, so go there
-        cd /home/jani/tmp/example/tests       
+// if the build failed, output a summary and fail
+if ($returnCode !== 0)
+{
+    // find the line with the summary; this might not be the last
+    while (($minimalTestSummary = array_pop($output)) !== null)
+    {
+        if (strpos($minimalTestSummary, 'Tests:') !== false)
+        {
+            break;
+        }
+    }
  
-        # And execute the testsuite, while ignoring any output
-        phpunit > /dev/null
+    // output the status and abort the commit
+    echo '+ Test suite for '.$project.' failed:'.PHP_EOL;
+    echo $minimalTestSummary;
+    echo chr(27).'[0m'.PHP_EOL; // disable colors and add a line break
+    echo PHP_EOL;
+    exit(1);
+}
  
-        # $? is a shell variable which stores the return code from what we just ran
-        rc=$?
-        if [[ $rc != 0 ]] ; then
-            # A non-zero return code means an error occurred, so tell the user and exit
-            echo "phpunit failed on rev $newrev - push deniend. Run tests locally and confirm they pass before pushing"
-            exit $rc
-        fi
-    fi
-done
- 
-# Everything went OK so we can exit with a zero
-exit 0
+echo '+ All tests for '.$project.' passed.'.PHP_EOL;
+echo PHP_EOL;
+exit(0);
