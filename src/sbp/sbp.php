@@ -320,7 +320,7 @@ namespace sbp
 		{
 			if(static::$prod)
 			{
-				return include(phpFile(preg_replace('#(\.sbp)?(\.php)?$#', '', $file)));
+				return include(static::phpFile(preg_replace('#(\.sbp)?(\.php)?$#', '', $file)));
 			}
 			if(!static::fileExists($file, $phpFile))
 			{
@@ -334,7 +334,7 @@ namespace sbp
 		{
 			if(static::$prod)
 			{
-				return include_once(phpFile(preg_replace('#(\.sbp)?(\.php)?$#', '', $file)));
+				return include_once(static::phpFile(preg_replace('#(\.sbp)?(\.php)?$#', '', $file)));
 			}
 			if(!static::fileExists($file, $phpFile))
 			{
