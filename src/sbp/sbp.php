@@ -274,7 +274,7 @@ namespace sbp
 				'sha1' :
 				static::$callbackWriteIn
 			);
-			$phpFile = (self::$destination === self::SAME_DIR ?
+			return (self::$destination === self::SAME_DIR ?
 				$file.'.php' :
 				self::$destination.$callback($file).'.php'
 			);
