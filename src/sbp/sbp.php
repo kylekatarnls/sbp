@@ -24,9 +24,20 @@ namespace sbp
 
 		const SAME_DIR = 0x01;
 
+		static protected $prod = false;
 		static protected $destination = self::SAME_DIR;
 		static protected $callbackWriteIn = null;
 		static protected $lastParsedFile = null;
+
+		static public function prod($on = true)
+		{
+			static::$prod = !!$on;
+		}
+
+		static public function dev($off = true)
+		{
+			static::$prod = !$off;
+		}
 
 		static public function writeIn($directory = self::SAME_DIR, $callback = null)
 		{
@@ -190,13 +201,17 @@ namespace sbp
 
 		static public function replaceString($match)
 		{
+			if(is_array($match))
+			{
+				$match = $match[0];
+			}
 			$id = count($GLOBALS['replaceStrings']);
-			$GLOBALS['replaceStrings'][$id] = $match[0];
-			if(strpos($match[0], '/') === 0)
+			$GLOBALS['replaceStrings'][$id] = $match;
+			if(strpos($match, '/') === 0)
 			{
 				$GLOBALS['commentStrings'][] = $id;
 			}
-			elseif(strpos($match[0], '?') === 0)
+			elseif(strpos($match, '?') === 0)
 			{
 				$GLOBALS['htmlCodes'][] = $id;
 			}
@@ -253,10 +268,8 @@ namespace sbp
 			return $writed;
 		}
 
-		static public function fileExists($file, &$phpFile = null)
+		static public function phpFile($file)
 		{
-			$file = preg_replace('#(\.sbp)?(\.php)?$#', '', $file);
-			$sbpFile = $file.'.sbp.php';
 			$callback = (is_null(static::$callbackWriteIn) ?
 				'sha1' :
 				static::$callbackWriteIn
@@ -265,6 +278,17 @@ namespace sbp
 				$file.'.php' :
 				self::$destination.$callback($file).'.php'
 			);
+		}
+
+		static public function fileExists($file, &$phpFile = null)
+		{
+			$file = preg_replace('#(\.sbp)?(\.php)?$#', '', $file);
+			$sbpFile = $file.'.sbp.php';
+			$callback = (is_null(static::$callbackWriteIn) ?
+				'sha1' :
+				static::$callbackWriteIn
+			);
+			$phpFile = static::phpFile($file);
 			if(!file_exists($phpFile))
 			{
 				if(file_exists($sbpFile))
@@ -294,7 +318,11 @@ namespace sbp
 
 		static public function includeFile($file)
 		{
-			if(!self::fileExists($file, $phpFile))
+			if(static::$prod)
+			{
+				return include(phpFile(preg_replace('#(\.sbp)?(\.php)?$#', '', $file)));
+			}
+			if(!static::fileExists($file, $phpFile))
 			{
 				throw new sbpException($file." not found", 1);
 				return false;
@@ -304,7 +332,11 @@ namespace sbp
 
 		static public function includeOnceFile($file)
 		{
-			if(!self::fileExists($file, $phpFile))
+			if(static::$prod)
+			{
+				return include_once(phpFile(preg_replace('#(\.sbp)?(\.php)?$#', '', $file)));
+			}
+			if(!static::fileExists($file, $phpFile))
 			{
 				throw new sbpException($file." not found", 1);
 				return false;
@@ -332,6 +364,20 @@ namespace sbp
 			return 'array(' .
 				preg_replace('#,(\s*)$#', '$1', preg_replace('#^([\t ]*)('.self::VALIDNAME.')([\t ]*=)(.*[^,]),?(?=[\r\n]|$)#mU', '$1 \'$2\'$3>$4,', $match[1])) .
 			')';
+		}
+
+		static public function replaceStrings($content)
+		{
+			foreach($GLOBALS['replaceStrings'] as $id => $string)
+			{
+				$content = str_replace(self::COMP.self::SUBST.$id.self::SUBST.self::COMP, $string, $content);
+			}
+			return $content;
+		}
+
+		static public function includeString($string)
+		{
+			return static::replaceString(var_export(static::replaceStrings(trim($string)), true));
 		}
 
 		static public function parse($content)
@@ -388,14 +434,30 @@ namespace sbp
 					=> function ($match)
 					{
 						list($all, $spaces, $before, $after) = $match;
-						return $spaces . '>assertFalse(' . $before . preg_replace('#(?<![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$])(?:be|return)(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])#', 'is', $after) . ', \'\'\'\'' . trim($all) . '\'\'\'\');';
+						return $spaces . '>assertFalse(' .
+							$before .
+							preg_replace('#
+								(?<![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$])
+								(?:be|return)
+								(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])
+							#x', 'is', $after) . ', ' .
+							static::includeString($all) .
+						');';
 					},
 
 				'#^(\s*)(\S.*\s)?should(?!\snot)\s(.*[^;]);*\s*$#mU'
 					=> function ($match)
 					{
 						list($all, $spaces, $before, $after) = $match;
-						return $spaces . '>assertTrue(' . $before . preg_replace('#(?<![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$])(?:be|return)(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])#', 'is', $after) . ', \'\'\'\'' . trim($all) . '\'\'\'\');';
+						return $spaces . '>assertTrue(' .
+							$before .
+							preg_replace('#
+								(?<![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$])
+								(?:be|return)
+								(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])
+							#x', 'is', $after) . ', ' .
+							static::includeString($all) .
+						');';
 					},
 			));
 
@@ -738,17 +800,8 @@ namespace sbp
 					=> '$1;$2',
 
 			));
-			foreach($GLOBALS['replaceStrings'] as $id => $string)
-			{
-				$content = str_replace(self::COMP.self::SUBST.$id.self::SUBST.self::COMP, $string, $content);
-			}
+			$content = static::replaceStrings($content);
 			$content = static::replace($content, array(
-
-				'#(?<!\')\'\'\'\'(.+)\'\'\'\'(?!\')#U'
-					=> function ($match)
-					{
-						return var_export($match[1], true);
-					},
 
 				"\r" => ' ',
 

@@ -14,7 +14,7 @@ class MathTest extends \PHPUnit_Framework_TestCase {
 		// message personnalisé
 		$this->assertTrue(strtolower('ABC') === 'abc', "strtolower devrait transformer ABC en abc", 'strtolower(\'ABC\') should be \'abc\', "strtolower devrait transformer ABC en abc"');
 		// be, is et === sont sensibles aux types
-		$this->assertFalse(7 === "7", '7 should !== be "7"');
+		$this->assertFalse(7 === "7", '7 should not be "7"');
 		// should return = should be
 		$this->assertTrue(gettype(7) === "int", 'gettype(7) should return "int"');
 		$this->assertFalse(gettype(7) === "string", 'gettype(7) should not return "string"');
