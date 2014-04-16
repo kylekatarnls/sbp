@@ -388,14 +388,14 @@ namespace sbp
 					=> function ($match)
 					{
 						list($all, $spaces, $before, $after) = $match;
-						return $spaces . '>assertFalse(' . $before . preg_replace('#(?<![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$])be(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])#', 'is', $after) . ', \'\'\'\'' . trim($all) . '\'\'\'\');';
+						return $spaces . '>assertFalse(' . $before . preg_replace('#(?<![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$])(?:be|return)(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])#', 'is', $after) . ', \'\'\'\'' . trim($all) . '\'\'\'\');';
 					},
 
 				'#^(\s*)(\S.*\s)?should(?!\snot)\s(.*[^;]);*\s*$#mU'
 					=> function ($match)
 					{
 						list($all, $spaces, $before, $after) = $match;
-						return $spaces . '>assertTrue(' . $before . preg_replace('#(?<![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$])be(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])#', 'is', $after) . ', \'\'\'\'' . trim($all) . '\'\'\'\');';
+						return $spaces . '>assertTrue(' . $before . preg_replace('#(?<![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$])(?:be|return)(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])#', 'is', $after) . ', \'\'\'\'' . trim($all) . '\'\'\'\');';
 					},
 			));
 
