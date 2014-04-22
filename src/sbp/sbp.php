@@ -29,6 +29,7 @@ namespace sbp
 		static protected $destination = self::SAME_DIR;
 		static protected $callbackWriteIn = null;
 		static protected $lastParsedFile = null;
+		static protected $plugins = array();
 
 		static public function prod($on = true)
 		{
@@ -38,6 +39,20 @@ namespace sbp
 		static public function dev($off = true)
 		{
 			static::$prod = !$off;
+		}
+
+		static public function addPlugin($plugin, $from, $to = null)
+		{
+			if(!is_null($to))
+			{
+				$from = array( $from => $to );
+			}
+			static::$plugins[$plugin] = $from;
+		}
+
+		static public function removePlugin($plugin)
+		{
+			unset(static::$plugins[$plugin]);
 		}
 
 		static public function benchmarkEnd()
@@ -460,6 +475,11 @@ namespace sbp
 			$GLOBALS['htmlCodes'] = array();
 			$GLOBALS['quotedStrings'] = array();
 			$GLOBALS['commentStrings'] = array();
+
+			foreach(static::$plugins as $replace)
+			{
+				$content = is_array($replace) ? static::replace($content, $replace) : $replace($content);
+			}
 
 			$content = static::replace(
 
@@ -951,6 +971,16 @@ namespace
 	function sbp_benchmark_end()
 	{
 		sbp\sbp::benchmarkEnd();
+	}
+
+	function sbp_add_plugin($plugin, $from, $to = null)
+	{
+		sbp\sbp::addPlugin($plugin, $from, $to);
+	}
+
+	function sbp_remove_plugin()
+	{
+		sbp\sbp::removePlugin($plugin);
 	}
 
 }
