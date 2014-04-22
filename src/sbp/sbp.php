@@ -689,6 +689,28 @@ namespace sbp
 					=> "$1 = $4$1",
 
 
+				/***************/
+				/* Comparisons */
+				/***************/
+				'#\seq\s#'
+					=> " == ",
+
+				'#\sne\s#'
+					=> " != ",
+
+				'#\sis\s#'
+					=> " === ",
+
+				'#\snot\s#'
+					=> " !== ",
+
+				'#\slt\s#'
+					=> " < ",
+
+				'#\sgt\s#'
+					=> " > ",
+
+
 				/**********************/
 				/* Array short syntax */
 				/**********************/
@@ -777,70 +799,48 @@ namespace sbp
 				}
 			}
 			$beforeSemiColon = '(' . $validSubst . '|\+\+|--|[a-zA-Z0-9_\x7f-\xff]!|[a-zA-Z0-9_\x7f-\xff]~|!!|[a-zA-Z0-9_\x7f-\xff\)\]])(?<!<\?php|<\?)';
-			$valuesContent = $content;
-			$values = array();
-			$valueRegex = preg_quote(self::SUBST.self::VALUE).'([1-9][0-9]*)'.preg_quote(self::VALUE.self::SUBST);
-			$restoreValues = function ($content) use($values)
-			{
-				foreach($values as $id => &$string)
-				{
-					if($string !== false)
-					{
-						$content = str_replace(self::COMP.self::VALUE.$id.self::VALUE.self::COMP, $string, $content);
-						$string = false;
-					}
-				}
-				return $content;
-			};
-			$filters = function ($content) use($valueRegex, $validSubst)
-			{
-				return static::replace($content,array(
-					/*********/
-					/* Regex */
-					/*********/
-					'#('.$validSubst.'|'.self::PARENTHESES.'|'.self::VALIDVAR.'|'.self::VALIDNAME.')\s*->(replace|replace_callback|match|match_all|quote|split)\s*('.self::PARENTHESES.')#U'
-						=> function ($match)
-						{
-							return 'preg_'.$match[2].substr(trim($match[3]), 0, -1).', '.$match[1].')';
-						},
+			// $valuesContent = $content;
+			// $values = array();
+			// $valueRegex = preg_quote(self::SUBST.self::VALUE).'([1-9][0-9]*)'.preg_quote(self::VALUE.self::SUBST);
+			// $restoreValues = function ($content) use($values)
+			// {
+			// 	foreach($values as $id => &$string)
+			// 	{
+			// 		if($string !== false)
+			// 		{
+			// 			$content = str_replace(self::COMP.self::VALUE.$id.self::VALUE.self::COMP, $string, $content);
+			// 			$string = false;
+			// 		}
+			// 	}
+			// 	return $content;
+			// };
+			// $filters = function ($content) use($valueRegex, $validSubst)
+			// {
+			// 	return static::replace($content,array(
+			// 		/*********/
+			// 		/* Regex */
+			// 		/*********/
+			// 		// '#('.$validSubst.'|'.self::PARENTHESES.'|'.self::VALIDVAR.'|'.self::VALIDNAME.')\s*->(replace|replace_callback|match|match_all|quote|split)\s*('.self::PARENTHESES.')#U'
+			// 		// 	=> function ($match)
+			// 		// 	{
+			// 		// 		return 'preg_'.$match[2].substr(trim($match[3]), 0, -1).', '.$match[1].')';
+			// 		// 	},
 
-					'#(?<!\/)\/[^\/\n][^\n]*\/[Usimxe]*(?!\/)#'
-						=> function ($match)
-						{
-							return static::includeString($match[0]);
-						},
-
-
-					/***************/
-					/* Comparisons */
-					/***************/
-					'#\seq\s#'
-						=> " == ",
-
-					'#\sne\s#'
-						=> " != ",
-
-					'#\sis\s#'
-						=> " === ",
-
-					'#\snot\s#'
-						=> " !== ",
-
-					'#\slt\s#'
-						=> " < ",
-
-					'#\sgt\s#'
-						=> " > ",
-				));
-			};
-			$substituteValues = function ($match) use($restoreValues, $values, $filters)
-			{
-				$id = count($values);
-				$values[$id] = $restoreValues($filters($match[0]));
-				return self::SUBST.self::VALUE.$id.self::VALUE.self::SUBST;
-			};
-			while($content = preg_replace_callback('#[\(\[\{][^\(\)\[\]\{\}]*[\)\}\]]#', $substituteValues, $content, -1, $count) && $count > 0);
-			$content = $restoreValues($filters($content));
+			// 		// '#(?<!\/)\/[^\/\n][^\n]*\/[Usimxe]*(?!\/)#'
+			// 		// 	=> function ($match)
+			// 		// 	{
+			// 		// 		return static::includeString($match[0]);
+			// 		// 	},
+			// 	));
+			// };
+			// $substituteValues = function ($match) use($restoreValues, $values, $filters)
+			// {
+			// 	$id = count($values);
+			// 	$values[$id] = $restoreValues($filters($match[0]));
+			// 	return self::SUBST.self::VALUE.$id.self::VALUE.self::SUBST;
+			// };
+			// while($content = preg_replace_callback('#[\(\[\{][^\(\)\[\]\{\}]*[\)\}\]]#', $substituteValues, $content, -1, $count) && $count > 0);
+			// $content = $restoreValues($filters($content));
 			$content = static::replace($content, array(
 
 				'#if-defined-(function\s+('.self::VALIDNAME.')([^\{]*)'.self::BRACES.')#'
