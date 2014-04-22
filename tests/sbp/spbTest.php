@@ -21,10 +21,10 @@ class sbpTest extends \PHPUnit_Framework_TestCase
 		{
 			$message = "sbp::parse(\"$from\") do not return \"$to\"";
 		}
-		$explode = explode("\n", sbp::parse("<?\n".$from), 2);
+		$explode = explode("\n", $parsed = sbp::parse("<?\n".$from), 2);
 		$from = str_replace(array("\n", "\r", "\t", ' '), '', trim(end($explode)));
 		$to = str_replace(array("\n", "\r", "\t", ' '), '', trim($to));
-		return $this->assertTrue($from === $to, $message);
+		return $this->assertTrue($from === $to, $message.", it return\"$parsed\"\n\n");
 	}
 
 	protected function assertParseFile($from, $message = null)
@@ -46,7 +46,7 @@ class sbpTest extends \PHPUnit_Framework_TestCase
 			$out = preg_split('#\r\n|\r|\n#', $out);
 			foreach($in as $key => $line)
 			{
-				if(preg_replace('#/\*.*\*/#U', '', $line) === preg_replace('#/\*.*\*/#U', '', $out[$key]))
+				if(preg_replace('#/\*.*\*/#U', '', rtrim($line)) === preg_replace('#/\*.*\*/#U', '', rtrim($out[$key])))
 				{
 					echo " ".str_replace("\t", '    ', $line)."\n";
 				}

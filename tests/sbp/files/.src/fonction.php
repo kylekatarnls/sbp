@@ -8,4 +8,7 @@ $cubes = array_map(
 
 	,[1, 2, 3]
 )
+
+@f cube $i
+	<pow($i, 3)
 ?>

@@ -8,4 +8,7 @@ $cubes = array_map(
     }
 	,[1, 2, 3]
 );
+if(! function_exists('cube')) { function cube ($i) {
+	return pow($i, 3);
+}}
 ?>
