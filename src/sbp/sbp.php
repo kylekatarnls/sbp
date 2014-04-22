@@ -25,6 +25,7 @@ namespace sbp
 		const IF_BLOKCS = 'if|elseif|catch|switch|while|for|foreach';
 		const START = '((?:^|[\n;\{\}])(?:\/\/.*(?=\n)|\/\*(?:.|\n)*\*\/\s*)*\s*)';
 		const ABSTRACT_SHORTCUTS = 'abstract|abst|abs|a';
+		const BENCHMARK_END = -1;
 
 		const SAME_DIR = 0x01;
 
@@ -32,6 +33,7 @@ namespace sbp
 		static protected $destination = self::SAME_DIR;
 		static protected $callbackWriteIn = null;
 		static protected $lastParsedFile = null;
+		static protected $plugins = array();
 
 		static public function prod($on = true)
 		{
@@ -41,6 +43,93 @@ namespace sbp
 		static public function dev($off = true)
 		{
 			static::$prod = !$off;
+		}
+
+		static public function addPlugin($plugin, $from, $to = null)
+		{
+			if(!is_null($to))
+			{
+				$from = array( $from => $to );
+			}
+			static::$plugins[$plugin] = $from;
+		}
+
+		static public function removePlugin($plugin)
+		{
+			unset(static::$plugins[$plugin]);
+		}
+
+		static public function benchmarkEnd()
+		{
+			static::benchmark(static::BENCHMARK_END);
+		}
+
+		static public function benchmark($title = '')
+		{
+			static $list = null;
+			$time = strval(microtime(true));
+			if(empty($title))
+			{
+				$list = array($time => "Start benchmark");
+				ob_start();
+			}
+			elseif(is_array($list))
+			{
+				if($title === static::BENCHMARK_END)
+				{
+					$previous = null;
+					$times = array_keys($list);
+					$len = max(0, min(2, max(array_map(function ($key)
+					{
+						$key = explode('.', $key);
+						return strlen(end($key)) - 3;
+					}, $times))));
+					$list[strval(microtime(true))] = "End benchmark";
+					$ul = '';
+					foreach($list as $time => $title)
+					{
+						$ul .= '<li>' . (is_null($previous) ? '' : '<b>' . number_format(($time - $previous) * 1000, $len, ',', ' ') . 'ms</b>') . $title . '</li>';
+						$previous = $time;
+					}
+					exit('<!doctype html>
+						<html lang="en">
+							<head>
+								<meta charset="UTF-8" />
+								<title>SBP - Benchmark</title>
+								<style type="text/css">
+								body
+								{
+									font-family: sans-serif;
+								}
+								li
+								{
+									margin: 40px;
+									position: relative;
+								}
+								li b
+								{
+									font-weight: bold;
+									position: absolute;
+									top: -30px;
+									left: -8px;
+								}
+								</style>
+							</head>
+							<body>
+								<h1>Benckmark</h1>
+								<ul>' . $ul . '</ul>
+								<p>All: <b>' . number_format((end($times) - reset($times)) * 1000, $len, ',', ' ') . 'ms</b></p>
+								<h1>Code source</h1>
+								<pre>' . htmlspecialchars(ob_get_clean()) . '</pre>
+							</body>
+						</html>'
+					);
+				}
+				else
+				{
+					$list[$time] = $title;
+				}
+			}
 		}
 
 		static public function writeIn($directory = self::SAME_DIR, $callback = null)
@@ -403,6 +492,11 @@ namespace sbp
 			$GLOBALS['htmlCodes'] = array();
 			$GLOBALS['quotedStrings'] = array();
 			$GLOBALS['commentStrings'] = array();
+
+			foreach(static::$plugins as $replace)
+			{
+				$content = is_array($replace) ? static::replace($content, $replace) : $replace($content);
+			}
 
 			$content = static::replace(
 
@@ -926,6 +1020,26 @@ namespace
 		{
 			return false;
 		}
+	}
+
+	function sbp_benchmark($title = '')
+	{
+		sbp\sbp::benchmark($title);
+	}
+
+	function sbp_benchmark_end()
+	{
+		sbp\sbp::benchmarkEnd();
+	}
+
+	function sbp_add_plugin($plugin, $from, $to = null)
+	{
+		sbp\sbp::addPlugin($plugin, $from, $to);
+	}
+
+	function sbp_remove_plugin()
+	{
+		sbp\sbp::removePlugin($plugin);
 	}
 
 }
