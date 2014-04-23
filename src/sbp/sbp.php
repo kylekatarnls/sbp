@@ -19,7 +19,7 @@ namespace sbp
 		const VALUE = 'µ';
 		const COMMENTS = '\/\/.*(?=\n)|\/\*(?:.|\n)*\*\/';
 		const OPERATORS = '\|\||\&\&|or|and|xor|is|not|<>|lt|gt|<=|>=|\!==|===|\?\:';
-		const PHP_WORDS = 'true|false|null|echo|print|static|yield|var|exit|as|case|default|clone|endswitch|endwhile|endfor|endforeach|callable|endif|enddeclare|final|finally|label|goto|const|global|namespace|instanceof|new|throw|include|require|include_once|require_once|use|exit|continue|return|break';
+		const PHP_WORDS = 'true|false|null|echo|print|static|yield|var|exit|as|case|default|clone|endswtch|endwhile|endfor|endforeach|callable|endif|enddeclare|final|finally|label|goto|const|global|namespace|instanceof|new|throw|include|require|include_once|require_once|use|exit|continue|return|break|extends|implements|abstract|public|protected|private|function';
 		const BLOKCS = 'if|else|elseif|try|catch|function|class|trait|switch|while|for|foreach|do';
 		const MUST_CLOSE_BLOKCS = 'try|catch|function|class|trait|switch|interface';
 		const IF_BLOKCS = 'if|elseif|catch|switch|while|for|foreach';
@@ -64,9 +64,58 @@ namespace sbp
 			static::benchmark(static::BENCHMARK_END);
 		}
 
-		static public function benchmark($title = '')
+		static protected function getBenchmarkHtml(&$list)
 		{
-			static $list = null;
+			$previous = null;
+			$times = array_keys($list);
+			$len = max(0, min(2, max(array_map(function ($key)
+			{
+				$key = explode('.', $key);
+				return strlen(end($key)) - 3;
+			}, $times))));
+			$list[strval(microtime(true))] = "End benchmark";
+			$ul = '';
+			foreach($list as $time => $title)
+			{
+				$ul .= '<li>' . (is_null($previous) ? '' : '<b>' . number_format(($time - $previous) * 1000, $len) . 'ms</b>') . $title . '</li>';
+				$previous = $time;
+			}
+			return '<!doctype html>
+				<html lang="en">
+					<head>
+						<meta charset="UTF-8" />
+						<title>SBP - Benchmark</title>
+						<style type="text/css">
+						body
+						{
+							font-family: sans-serif;
+						}
+						li
+						{
+							margin: 40px;
+							position: relative;
+						}
+						li b
+						{
+							font-weight: bold;
+							position: absolute;
+							top: -30px;
+							left: -8px;
+						}
+						</style>
+					</head>
+					<body>
+						<h1>Benckmark</h1>
+						<ul>' . $ul . '</ul>
+						<p>All: <b>' . number_format((end($times) - reset($times)) * 1000, $len, ',', ' ') . 'ms</b></p>
+						<h1>Code source</h1>
+						<pre>' . htmlspecialchars(ob_get_clean()) . '</pre>
+					</body>
+				</html>';
+		}
+
+		static protected function recordBenchmark(&$list, $title)
+		{
 			$time = strval(microtime(true));
 			if(empty($title))
 			{
@@ -77,59 +126,19 @@ namespace sbp
 			{
 				if($title === static::BENCHMARK_END)
 				{
-					$previous = null;
-					$times = array_keys($list);
-					$len = max(0, min(2, max(array_map(function ($key)
-					{
-						$key = explode('.', $key);
-						return strlen(end($key)) - 3;
-					}, $times))));
-					$list[strval(microtime(true))] = "End benchmark";
-					$ul = '';
-					foreach($list as $time => $title)
-					{
-						$ul .= '<li>' . (is_null($previous) ? '' : '<b>' . number_format(($time - $previous) * 1000, $len, ',', ' ') . 'ms</b>') . $title . '</li>';
-						$previous = $time;
-					}
-					exit('<!doctype html>
-						<html lang="en">
-							<head>
-								<meta charset="UTF-8" />
-								<title>SBP - Benchmark</title>
-								<style type="text/css">
-								body
-								{
-									font-family: sans-serif;
-								}
-								li
-								{
-									margin: 40px;
-									position: relative;
-								}
-								li b
-								{
-									font-weight: bold;
-									position: absolute;
-									top: -30px;
-									left: -8px;
-								}
-								</style>
-							</head>
-							<body>
-								<h1>Benckmark</h1>
-								<ul>' . $ul . '</ul>
-								<p>All: <b>' . number_format((end($times) - reset($times)) * 1000, $len, ',', ' ') . 'ms</b></p>
-								<h1>Code source</h1>
-								<pre>' . htmlspecialchars(ob_get_clean()) . '</pre>
-							</body>
-						</html>'
-					);
+					exit(static::getBenchmarkHtml($list));
 				}
 				else
 				{
 					$list[$time] = $title;
 				}
 			}
+		}
+
+		static public function benchmark($title = '')
+		{
+			static $list = null;
+			return static::recordBenchmark($list, $title);
 		}
 
 		static public function writeIn($directory = self::SAME_DIR, $callback = null)
@@ -323,6 +332,10 @@ namespace sbp
 
 		static protected function validSubst($motif = '[0-9]+')
 		{
+			if($motif === '(?:)')
+			{
+				$motif = '(?:[^\S\s])';
+			}
 			return preg_quote(self::COMP.self::SUBST).$motif.preg_quote(self::SUBST.self::COMP);
 		}
 
@@ -488,6 +501,7 @@ namespace sbp
 
 		static public function parse($content)
 		{
+			$detect = (strpos($content, 'trois =') !== false);
 			$GLOBALS['replaceStrings'] = array();
 			$GLOBALS['htmlCodes'] = array();
 			$GLOBALS['quotedStrings'] = array();
@@ -892,49 +906,71 @@ namespace sbp
 					$content .= "\n" . str_repeat('}', count($curind));
 				}
 			}
-			$beforeSemiColon = '(' . $validSubst . '|\+\+|--|[a-zA-Z0-9_\x7f-\xff]!|[a-zA-Z0-9_\x7f-\xff]~|!!|[a-zA-Z0-9_\x7f-\xff\)\]])(?<!<\?php|<\?)';
-			// $valuesContent = $content;
-			// $values = array();
-			// $valueRegex = preg_quote(self::SUBST.self::VALUE).'([1-9][0-9]*)'.preg_quote(self::VALUE.self::SUBST);
-			// $restoreValues = function ($content) use($values)
-			// {
-			// 	foreach($values as $id => &$string)
-			// 	{
-			// 		if($string !== false)
-			// 		{
-			// 			$content = str_replace(self::COMP.self::VALUE.$id.self::VALUE.self::COMP, $string, $content);
-			// 			$string = false;
-			// 		}
-			// 	}
-			// 	return $content;
-			// };
-			// $filters = function ($content) use($valueRegex, $validSubst)
-			// {
-			// 	return static::replace($content,array(
-			// 		/*********/
-			// 		/* Regex */
-			// 		/*********/
-			// 		// '#('.$validSubst.'|'.self::PARENTHESES.'|'.self::VALIDVAR.'|'.self::VALIDNAME.')\s*->(replace|replace_callback|match|match_all|quote|split)\s*('.self::PARENTHESES.')#U'
-			// 		// 	=> function ($match)
-			// 		// 	{
-			// 		// 		return 'preg_'.$match[2].substr(trim($match[3]), 0, -1).', '.$match[1].')';
-			// 		// 	},
+			$valuesContent = $content;
+			$values = array();
+			$valueRegex = preg_quote(self::SUBST.self::VALUE).'([0-9]+)'.preg_quote(self::VALUE.self::SUBST);
+			$valueRegexNonCapturant = preg_quote(self::SUBST.self::VALUE).'[0-9]+'.preg_quote(self::VALUE.self::SUBST);
+			$validExpressionRegex = '(?<!\$)\$*[a-zA-Z0-9_\x7f-\xff\\\\]+(?:'.$valueRegexNonCapturant.')+|'.$valueRegexNonCapturant.'|'.$validSubst.'|[.\\\\a-zA-Z0-9_]+';
+			$restoreValues = function ($content) use(&$values)
+			{
+				foreach($values as $id => &$string)
+				{
+					if($string !== false)
+					{
+						$old = $content;
+						$content = str_replace(self::SUBST.self::VALUE.$id.self::VALUE.self::SUBST, $string, $content);
+						if($old !== $content)
+						{
+							$string = false;
+						}
+					}
+				}
+				return $content;
+			};
+			$filters = function ($content) use($restoreValues, &$values, $valueRegex, $validSubst, $validExpressionRegex)
+			{
+				return static::replace($content,array(
+					/*********/
+					/* Regex */
+					/*********/
+					'#('.$validExpressionRegex.')\s*->(replace|replace_callback|match|match_all|quote|split)\s*('.$validExpressionRegex.')#U'
+						=> function ($match) use(&$values)
+						{
+							list($all, $string, $function, $parentheses) = $match;
+							$key = intval(trim($parentheses, self::SUBST.self::VALUE));
+							if(substr(trim($values[$key]), 0, 1) !== '(')
+							{
+								return $all;
+							}
+							$values[$key] = substr(rtrim($values[$key]), 0, -1).', '.$string.')';
+							return 'preg_'.$function.$parentheses;
+						},
 
-			// 		// '#(?<!\/)\/[^\/\n][^\n]*\/[Usimxe]*(?!\/)#'
-			// 		// 	=> function ($match)
-			// 		// 	{
-			// 		// 		return static::includeString($match[0]);
-			// 		// 	},
-			// 	));
-			// };
-			// $substituteValues = function ($match) use($restoreValues, $values, $filters)
-			// {
-			// 	$id = count($values);
-			// 	$values[$id] = $restoreValues($filters($match[0]));
-			// 	return self::SUBST.self::VALUE.$id.self::VALUE.self::SUBST;
-			// };
-			// while($content = preg_replace_callback('#[\(\[\{][^\(\)\[\]\{\}]*[\)\}\]]#', $substituteValues, $content, -1, $count) && $count > 0);
-			// $content = $restoreValues($filters($content));
+					'#(?<!\/)\/[^\/\n][^\n]*\/[Usimxe]*(?!\/)#'
+						=> function ($match) use($restoreValues)
+						{
+							return static::includeString($restoreValues($match[0]));
+						},
+
+					// '#(?<!'.self::PHP_WORDS.'|'.self::OPERATORS.'|'.self::BLOKCS.'|[\t ])([\t ]+)('.$validExpressionRegex.')\s+(?!'.self::PHP_WORDS.'|'.self::OPERATORS.'|'.self::BLOKCS.')([a-zA-Z0-9_\x7f-\xff]+)\s+('.$validExpressionRegex.')#'
+					// 	=> function ($match) use($restoreValues, &$values)
+					// 	{
+					// 		list($all, $spaces, $left, $keyWord, $right) = $match;
+					// 		$id = count($values);
+					// 		$values[$id] = $restoreValues('('.$left.', '.$right.')');
+					// 		return $spaces.'__sbp_'.$keyWord.self::SUBST.self::VALUE.$id.self::VALUE.self::SUBST;
+					// 	},
+				));
+			};
+			$substituteValues = function ($match) use($restoreValues, &$values, $filters)
+			{
+				$id = count($values);
+				$values[$id] = $restoreValues($filters($match[0]));
+				return self::SUBST.self::VALUE.$id.self::VALUE.self::SUBST;
+			};
+			while(($content = preg_replace_callback('#[\(\[\{][^\(\)\[\]\{\}]*[\)\}\]]#', $substituteValues, $content, -1, $count)) && $count > 0);
+			$content = $restoreValues($filters($content));
+			$beforeSemiColon = '(' . $validSubst . '|\+\+|--|[a-zA-Z0-9_\x7f-\xff]!|[a-zA-Z0-9_\x7f-\xff]~|!!|[a-zA-Z0-9_\x7f-\xff\)\]])(?<!<\?php|<\?)';
 			$content = static::replace($content, array(
 
 				'#if-defined-(function\s+('.self::VALIDNAME.')([^\{]*)'.self::BRACES.')#'
@@ -1037,7 +1073,7 @@ namespace
 		sbp\sbp::addPlugin($plugin, $from, $to);
 	}
 
-	function sbp_remove_plugin()
+	function sbp_remove_plugin($plugin)
 	{
 		sbp\sbp::removePlugin($plugin);
 	}
