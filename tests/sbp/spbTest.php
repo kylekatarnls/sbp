@@ -32,6 +32,8 @@ class sbp extends \sbp\sbp
 
 class sbpTest extends \PHPUnit_Framework_TestCase
 {
+	const WRAP_LINES = 5;
+
 	protected function assertParse($from, $to, $message = null)
 	{
 		if(is_null($message))
@@ -56,21 +58,36 @@ class sbpTest extends \PHPUnit_Framework_TestCase
 		$from = str_replace(array("\n", "\r", "\t", ' '), '', $in);
 		$to = preg_replace('#/\*.*\*/#U', '', $to);
 		$from = preg_replace('#/\*.*\*/#U', '', $from);
+		$lastDiffKey = -2 * static::WRAP_LINES;
+		$lastPrintedKey = $lastDiffKey;
 		if($from !== $to)
 		{
 			echo "\n";
-			$in = preg_split('#\r\n|\r|\n#', $in);
-			$out = preg_split('#\r\n|\r|\n#', $out);
+			$in = preg_split('#\r\n|\r|\n#', preg_replace('#(\n[\t ]*)(\n[\t ]*)}([\t ]*)(?=\S)#', '$1}$2$3', $in));
+			$out = preg_split('#\r\n|\r|\n#', preg_replace('#(\n[\t ]*)(\n[\t ]*)}([\t ]*)(?=\S)#', '$1}$2$3', $out));
 			foreach($in as $key => $line)
 			{
 				if(preg_replace('#/\*.*\*/#U', '', trim($line)) === preg_replace('#/\*.*\*/#U', '', trim($out[$key])))
 				{
-					echo " ".str_replace("\t", '    ', $line)."\n";
+					if($key - $lastDiffKey === static::WRAP_LINES)
+					{
+						echo " [...]\n";
+					}
+					elseif($key - $lastDiffKey < static::WRAP_LINES)
+					{
+						echo " ".str_replace("\t", '    ', $line)."\n";
+						$lastPrintedKey = $key;
+					}
 				}
 				else
 				{
+					for($i = max(0, $lastPrintedKey + 1, $key - static::WRAP_LINES); $i < $key; $i++)
+					{
+						echo " ".str_replace("\t", '    ', $out[$i])."\n";
+					}
 					echo "-".str_replace("\t", '    ', $line)."\n";
 					echo "+".str_replace("\t", '    ', $out[$key])."\n";
+					$lastDiffKey = $key;
 				}
 			}
 		}
@@ -90,15 +107,6 @@ class sbpTest extends \PHPUnit_Framework_TestCase
 		$this->assertParse("\$result = \$('#element')->animate({\n\tleft = 400\n\ttop = 200\n});", "\$result = \$('#element')->animate(array(\n\t'left' => 400,\n\t'top' => 200\n));");
 	}
 
-	public function testBenchmark()
-	{
-		// $marker = 'Marker';
-		// sbp::benchmark();
-		// sbp::benchmark($marker);
-		// $content = sbp::benchmark(sbp::TEST_GET_BENCHMARK_HTML);
-		// $this->assertTrue(stripos($content, '<html') !== false && strpos($content, $marker) !== false);
-	}
-
 	public function testParseFile()
 	{
 		foreach(scandir($dir = __DIR__ . '/files/') as $file)
@@ -108,6 +116,16 @@ class sbpTest extends \PHPUnit_Framework_TestCase
 				$this->assertParseFile($file);
 			}
 		}
+	}
+
+	public function testBenchmark()
+	{
+		$marker = 'Marker';
+		sbp::benchmark();
+		sbp::benchmark($marker);
+		$content = sbp::benchmark(sbp::TEST_GET_BENCHMARK_HTML);
+		$this->assertTrue(stripos($content, '<html') !== false);
+		//$this->assertTrue(strpos($content, $marker) !== false);
 	}
 }
 

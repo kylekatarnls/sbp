@@ -910,7 +910,7 @@ namespace sbp
 			$values = array();
 			$valueRegex = preg_quote(self::SUBST.self::VALUE).'([0-9]+)'.preg_quote(self::VALUE.self::SUBST);
 			$valueRegexNonCapturant = preg_quote(self::SUBST.self::VALUE).'[0-9]+'.preg_quote(self::VALUE.self::SUBST);
-			$validExpressionRegex = '(?<!\$)\$*[a-zA-Z0-9_\x7f-\xff\\\\]+(?:'.$valueRegexNonCapturant.')+|'.$valueRegexNonCapturant.'|'.$validSubst.'|[.\\\\a-zA-Z0-9_]+';
+			$validExpressionRegex = '(?<!\$)\$*[a-zA-Z0-9_\x7f-\xff\\\\]+(?:'.$valueRegexNonCapturant.')+|'.$valueRegexNonCapturant.'|'.$validSubst.'|[\\\\a-zA-Z_][\\\\a-zA-Z0-9_]*|[0-9]*\.?[0-9]+';
 			$restoreValues = function ($content) use(&$values)
 			{
 				foreach($values as $id => &$string)
@@ -929,6 +929,7 @@ namespace sbp
 			};
 			$filters = function ($content) use($restoreValues, &$values, $valueRegex, $validSubst, $validExpressionRegex)
 			{
+				$keyWords = self::PHP_WORDS.'|'.self::OPERATORS.'|'.self::BLOKCS;
 				return static::replace($content,array(
 					/*********/
 					/* Regex */
@@ -952,7 +953,10 @@ namespace sbp
 							return static::includeString($restoreValues($match[0]));
 						},
 
-					// '#(?<!'.self::PHP_WORDS.'|'.self::OPERATORS.'|'.self::BLOKCS.'|[\t ])([\t ]+)('.$validExpressionRegex.')\s+(?!'.self::PHP_WORDS.'|'.self::OPERATORS.'|'.self::BLOKCS.')([a-zA-Z0-9_\x7f-\xff]+)\s+('.$validExpressionRegex.')#'
+					/********************/
+					/* Custom operators */
+					/********************/
+					// '#(?<!'.$keyWords.'|[\t ])([\t ]*)(?!'.$keyWords.')('.$validExpressionRegex.')[\t ]+(?!'.$keyWords.')([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)[\t ]+(?!'.$keyWords.')('.$validExpressionRegex.')#'
 					// 	=> function ($match) use($restoreValues, &$values)
 					// 	{
 					// 		list($all, $spaces, $left, $keyWord, $right) = $match;
