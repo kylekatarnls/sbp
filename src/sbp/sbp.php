@@ -1023,6 +1023,9 @@ namespace sbp
 				'#(catch\s*\([^\)]+\)\s*)([^\s\{])#'
 					=> '$1{} $2',
 
+				'#\(('.self::PARENTHESES.')\)#'
+					=> '$1'
+
 			));
 			return $content;
 		}
