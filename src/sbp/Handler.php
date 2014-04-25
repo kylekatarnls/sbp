@@ -2,13 +2,8 @@
 
 namespace Sbp;
 
-class Handler
+class Handler extends ValueHandler
 {
-	protected $value;
-	public function __construct($value)
-	{
-		$this->value = $value;
-	}
 	public function __call($method, $args)
 	{
 		if(is_object($this->value) && method_exists($this->value, $method))
