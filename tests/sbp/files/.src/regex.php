@@ -1,3 +1,3 @@
 <?
 
-$return = "AbcdEF"->replace(/[a-z]/, '#')
+$return = "AbcdEF"-->replace(/[a-z]/, '#')
