@@ -11,9 +11,9 @@ namespace sbp
 		const VALIDNAME = '[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*';
 		const NUMBER = '(?:0[xbXB])?[0-9]*\.?[0-9]+(?:[eE](?:0[xbXB])?[0-9]*\.?[0-9]+)?';
 		const VALIDVAR = '(?<!\$)\$+[^\$\n\r]+([\[\{]((?>[^\[\{\]\}]+)|(?-2))*[\]\}])?(?![a-zA-Z0-9_\x7f-\xff\$\[\{])';
-		const BRACES = '(?:\{((?>[^\{\}]+)|(?-2))*\})';
-		const BRAKETS = '(?:\[((?>[^\[\]]+)|(?-2))*\])';
-		const PARENTHESES = '(?:\(((?>[^\(\)]+)|(?-2))*\))';
+		const BRACES = '(\{((?>[^\{\}]+)|(?-2))*\})';
+		const BRAKETS = '(\[((?>[^\[\]]+)|(?-2))*\])';
+		const PARENTHESES = '(\(((?>[^\(\)]+)|(?-2))*\))';
 		const CONSTNAME = '[A-Z_]+';
 		const SUBST = '÷';
 		const COMP = '`';
@@ -22,6 +22,7 @@ namespace sbp
 		const OPERATORS = '\|\||\&\&|or|and|xor|is|not|<>|lt|gt|<=|>=|\!==|===|\?\:';
 		const PHP_WORDS = 'true|false|null|echo|print|static|yield|var|exit|as|case|default|clone|endswtch|endwhile|endfor|endforeach|callable|endif|enddeclare|final|finally|label|goto|const|global|namespace|instanceof|new|throw|include|require|include_once|require_once|use|exit|continue|return|break|extends|implements|abstract|public|protected|private|function|interface';
 		const BLOKCS = 'if|else|elseif|try|catch|function|class|trait|switch|while|for|foreach|do';
+		const ALLOW_ALONE_CUSTOM_OPERATOR = 'if|elseif|foreach|for|while|or|and|xor';
 		const MUST_CLOSE_BLOKCS = 'try|catch|function|class|trait|switch|interface';
 		const IF_BLOKCS = 'if|elseif|catch|switch|while|for|foreach';
 		const START = '((?:^|[\n;\{\}])(?:\/\/.*(?=\n)|\/\*(?:.|\n)*\*\/\s*)*\s*)';
@@ -928,7 +929,14 @@ namespace sbp
 				}
 				return $content;
 			};
-			$filters = function ($content) use($restoreValues, &$values, $valueRegex, $valueRegexNonCapturant, $validSubst, $validExpressionRegex)
+			$aloneCustomOperator = implode('|', array_map(
+				function ($value)
+				{
+					return '(?<![a-zA-Z0-9_])'.$value;
+				},
+				explode('|', self::ALLOW_ALONE_CUSTOM_OPERATOR)
+			));
+			$filters = function ($content) use($aloneCustomOperator, $restoreValues, &$values, $valueRegex, $valueRegexNonCapturant, $validSubst, $validExpressionRegex)
 			{
 				$keyWords = self::PHP_WORDS.'|'.self::OPERATORS.'|'.self::BLOKCS;
 				return static::replace($content,array(
@@ -964,6 +972,15 @@ namespace sbp
 							$id = count($values);
 							$values[$id] = $restoreValues('('.$left.', '.$right.')');
 							return '__sbp_'.$keyWord.self::SUBST.self::VALUE.$id.self::VALUE.self::SUBST;
+						},
+
+					'#(?<=^|[,\n=*\/\^%&|<>!+-]|'.$aloneCustomOperator.')[\n\t ]+(?!'.$keyWords.')([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)[\t ]+(?!'.$keyWords.')('.$validExpressionRegex.')#'
+						=> function ($match) use($restoreValues, &$values)
+						{
+							list($all, $keyWord, $right) = $match;
+							$id = count($values);
+							$values[$id] = $restoreValues('('.$right.')');
+							return ' __sbp_'.$keyWord.self::SUBST.self::VALUE.$id.self::VALUE.self::SUBST;
 						},
 				));
 			};
@@ -1005,16 +1022,16 @@ namespace sbp
 				'#(?<![a-zA-Z0-9_\x7f-\xff\$])('.self::IF_BLOKCS.')(?:\s+(\S.*))?\s*\{#U'
 					=> '$1 ($2) {',
 
-				'#(?<![a-zA-Z0-9_\x7f-\xff\$])(function\s+'.self::VALIDNAME.')(?:\s+(array\s.+|[A-Z\$\&].+))?\s*\{#U'
+				'#(?<![a-zA-Z0-9_\x7f-\xff\$])(function\s+'.self::VALIDNAME.')(?:\s+(array\s.+|_*[A-Z\$\&\\\\].+))?\s*\{#U'
 					=> '$1 ($2) {',
 
-				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function\s*(array\s.+|[A-Z\$\&].+)?\s*\{#U'
+				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function\s*(array\s.+|_*[A-Z\$\&\\\\].+)?\s*\{#U'
 					=> 'function ($1) {',
 
 				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function\s+use(?![a-zA-Z0-9_\x7f-\xff])#U'
 					=> 'function () use',
 
-				'#(?<![a-zA-Z0-9_\x7f-\xff\$])(function.*[^a-zA-Z0-9_\x7f-\xff\$])use\s*((array\s.+|[A-Z\$\&].+)\{)#U'
+				'#(?<![a-zA-Z0-9_\x7f-\xff\$])(function.*[^a-zA-Z0-9_\x7f-\xff\$])use\s*((array\s.+|_*[A-Z\$\&\\\\].+)\{)#U'
 					=> '$1 ) use ( $2',
 
 				'#\((\([^\(\)]+\))\)#'

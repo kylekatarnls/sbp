@@ -1,6 +1,8 @@
 <?
 
-@f __sbp_in $needle, $haystack
+@f __sbp_in $needle, $haystack = null
+	if func_num_args() is 1
+		< array_search(true, $neelde)
 	< is_array($haystack) ?
 		in_array($needle, $haystack) :
 		strpos($haystack, $needle) !== false
@@ -14,3 +16,8 @@ if "BA" in "tagaBAduru"
 	echo "BA is in tagaBAduru"
 else
 	echo "BA isn't in tagaBAduru"
+
+if in [false, true, true, false]
+	echo "There is true values"
+else
+	echo "There is no true value"

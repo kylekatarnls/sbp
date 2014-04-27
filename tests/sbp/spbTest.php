@@ -54,8 +54,8 @@ class sbpTest extends \PHPUnit_Framework_TestCase
 			$message = "sbp::fileParse(\"$from\") do match the compiled file";
 		}
 		$trim = static::IGNORE_BRACES ? "{}\n\r\t " : "\n\r\t ";
-		$out = trim(file_get_contents($from));
-		$in = trim(sbp::testContent(preg_replace('#^(.+)(/[^/]+)$#', '$1/.src$2', $from)));
+		$out = trim(file_get_contents($fromPath = $from));
+		$in = trim(sbp::testContent($toPath = preg_replace('#^(.+)(/[^/]+)$#', '$1/.src$2', $from)));
 		$to = str_replace(array("\n", "\r", "\t", ' '), '', $out);
 		$from = str_replace(array("\n", "\r", "\t", ' '), '', $in);
 		$to = preg_replace('#/\*.*\*/#U', '', $to);
@@ -64,7 +64,7 @@ class sbpTest extends \PHPUnit_Framework_TestCase
 		$lastPrintedKey = $lastDiffKey;
 		if($from !== $to)
 		{
-			echo "\n";
+			echo "\n=====================================\n- $toPath (parsed)\n+ $fromPath\n";
 			$in = preg_split('#\r\n|\r|\n#', preg_replace('#(\n[\t ]*)(\n[\t ]*)}([\t ]*)(?=\S)#', '$1}$2$3', $in));
 			$out = preg_split('#\r\n|\r|\n#', preg_replace('#(\n[\t ]*)(\n[\t ]*)}([\t ]*)(?=\S)#', '$1}$2$3', $out));
 			foreach($in as $key => $line)

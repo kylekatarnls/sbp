@@ -28,7 +28,7 @@ namespace Extra\Bidule {
     }}
 	class \Yap\Yop extends Yiip\Yup implements \Gui\Hby {
 
-		static private function lala \Yap\Uui $r, $o = (array) array(5), $i = null{
+		static private function lala(\Yap\Uui $r, array $o = array(5), $i = null) {
 
 			$r = substr($r, 2, 4);
 			return  $r;

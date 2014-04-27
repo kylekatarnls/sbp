@@ -28,7 +28,7 @@ namespace Extra\Bidule {
 	
 	\Yap\Yop:Yiip\Yup <<< \Gui\Hby
 
-		s- lala \Yap\Uui $r, $o = (array) array(5), $i = null
+		s- lala \Yap\Uui $r, array $o = array(5), $i = null
 
 			substr(**$r, 2, 4)
 			< $r
