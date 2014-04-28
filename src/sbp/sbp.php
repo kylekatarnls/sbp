@@ -971,7 +971,7 @@ namespace sbp
 							list($all, $left, $keyWord, $right) = $match;
 							$id = count($values);
 							$values[$id] = $restoreValues('('.$left.', '.$right.')');
-							return '__sbp_'.$keyWord.self::SUBST.self::VALUE.$id.self::VALUE.self::SUBST;
+							return ' __sbp_'.$keyWord.self::SUBST.self::VALUE.$id.self::VALUE.self::SUBST;
 						},
 
 					'#(?<=^|[,\n=*\/\^%&|<>!+-]|'.$aloneCustomOperator.')[\n\t ]+(?!'.$keyWords.')([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)[\t ]+(?!'.$keyWords.')('.$validExpressionRegex.')#'
@@ -990,7 +990,7 @@ namespace sbp
 				$values[$id] = $restoreValues($filters($match[0]));
 				return self::SUBST.self::VALUE.$id.self::VALUE.self::SUBST;
 			};
-			while(($content = preg_replace_callback('#[\(\[][^\(\)\[\]]*[\)\]]#', $substituteValues, $previous = $content, -1, $count)) && $count > 0);
+			while(($content = preg_replace_callback('#[\(\[][^\(\)\[\]]*[\)\]]#', $substituteValues, $content, -1, $count)) && $count > 0);
 			$content = $restoreValues($filters($content));
 			$beforeSemiColon = '(' . $validSubst . '|\+\+|--|[a-zA-Z0-9_\x7f-\xff]!|[a-zA-Z0-9_\x7f-\xff]~|!!|[a-zA-Z0-9_\x7f-\xff\)\]])(?<!<\?php|<\?)';
 			$content = static::replace($content, array(
@@ -1009,6 +1009,9 @@ namespace sbp
 
 				'#' . $beforeSemiColon . '(\s*(?:' . $validComments . '\s*)*\?>)$#U'
 					=> '$1;$2',
+
+				'#(?<=^|\s)(function\s[^{]+);#U'
+					=> '$1 {}',
 
 			));
 			$content = static::replaceStrings($content);
