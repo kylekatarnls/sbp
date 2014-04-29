@@ -841,6 +841,10 @@ namespace Sbp
 				'#{(\s*(?:\n+[\t ]*'.self::VALIDNAME.'[\t ]*=[^\n]+)*\s*)}#'
 					=> array(get_class(), 'arrayShortSyntax'),
 
+
+				/***********/
+				/* Chainer */
+				/***********/
 				'#'.preg_quote(self::CHAINER).'('.self::PARENTHESES.')#'
 					=> "(new \\Sbp\\Chainer($1))",
 
