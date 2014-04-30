@@ -19,7 +19,7 @@ namespace Sbp
 		const COMP = '`';
 		const VALUE = 'µ';
 		const CHAINER = '¤';
-		const COMMENTS = '\/\/.*(?=\n)|\/\*(?:.|\n)*\*\/';
+		const COMMENTS = '(?:\/\/|#).*(?=\n)|\/\*(?:.|\n)*\*\/';
 		const OPERATORS = '\|\||\&\&|or|and|xor|is|not|<>|lt|gt|<=|>=|\!==|===|\?\:';
 		const PHP_WORDS = 'true|false|null|echo|print|static|yield|var|exit|as|case|default|clone|endswtch|endwhile|endfor|endforeach|callable|endif|enddeclare|final|finally|label|goto|const|global|namespace|instanceof|new|throw|include|require|include_once|require_once|use|exit|continue|return|break|extends|implements|abstract|public|protected|private|function|interface';
 		const BLOKCS = 'if|else|elseif|try|catch|function|class|trait|switch|while|for|foreach|do';
