@@ -862,7 +862,7 @@ namespace Sbp
 				/**********************/
 				/* Array short syntax */
 				/**********************/
-				'#{(\s*(?:\n+[\t ]*'.self::VALIDNAME.'[\t ]*=[^\n]+)*\s*)}#'
+				'#{(\s*(?:\n+[\t ]*'.self::VALIDNAME.'[\t ]*=[^\n]+)+\s*)}#'
 					=> array(get_class(), 'arrayShortSyntax'),
 
 
