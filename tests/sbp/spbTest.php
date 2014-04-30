@@ -7,10 +7,15 @@ class sbp extends \sbp\sbp
 	const TEST_GET_BENCHMARK_HTML = 'test-get-benchmark-html';
 	const TEST_GET_LIST = 'test-get-list';
 
-	static public function testContent($from)
+	static public function testFileContent($from)
 	{
-		static::$lastParsedFile = $from;
-		$content = self::parse(file_get_contents($from));
+		return static::testContent(file_get_contents($from), $from);
+	}
+
+	static public function testContent($from, $file)
+	{
+		static::$lastParsedFile = $file;
+		$content = self::parse($from);
 		static::$lastParsedFile = null;
 		return $content;
 	}
@@ -50,7 +55,7 @@ class sbpTest extends \PHPUnit_Framework_TestCase
 	static protected function matchContent($from, $to)
 	{
 		$out = trim(file_get_contents($from));
-		$in = trim(sbp::testContent($to));
+		$in = trim(sbp::testFileContent($to));
 		$to = str_replace(array("\n", "\r", "\t", ' '), '', $out);
 		$from = str_replace(array("\n", "\r", "\t", ' '), '', $in);
 		$to = preg_replace('#/\*.*\*/#U', '', $to);
@@ -71,7 +76,7 @@ class sbpTest extends \PHPUnit_Framework_TestCase
 					{
 						echo " [...]\n";
 					}
-					elseif($key - $lastDiffKey < static::WRAP_LINES)
+					elseif($key - $lastDiffKey < static::WRAP_LINES && $key)
 					{
 						echo " ".str_replace("\t", '    ', $line)."\n";
 						$lastPrintedKey = $key;
@@ -81,11 +86,12 @@ class sbpTest extends \PHPUnit_Framework_TestCase
 				{
 					for($i = max(0, $lastPrintedKey + 1, $key - static::WRAP_LINES); $i < $key; $i++)
 					{
-						echo " ".str_replace("\t", '    ', $out[$i])."\n";
+						echo " ".str_replace("\t", '    ', $in[$i])."\n";
 					}
 					echo "-".str_replace("\t", '    ', $line)."\n";
 					echo "+".str_replace("\t", '    ', $out[$key])."\n";
 					$lastDiffKey = $key;
+					$lastPrintedKey = $key;
 				}
 			}
 		}
@@ -109,6 +115,9 @@ class sbpTest extends \PHPUnit_Framework_TestCase
 
 	public function testParse()
 	{
+		$content = explode("\n", sbp::testContent("<?\n__FILE . __DIR", __FILE__), 2);
+		$content = $content[1];
+		$this->assertTrue(trim($content) === var_export(__FILE__, true) . ' . ' . var_export(__DIR__, true), "__FILE . __DIR should be __FILE__ . __DIR__");
 		$this->assertParse("ANameSpace\\BClass:CNameSpace\\DClass\n\t- \$var = 'a'", "class ANameSpace\\BClass extends CNameSpace\\DClass {\n\tprivate \$var = 'a';\n}");
 	}
 

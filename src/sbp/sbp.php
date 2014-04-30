@@ -611,8 +611,32 @@ namespace Sbp
 				$__file = static::$lastParsedFile;
 			}
 			$__dir = is_null($__file) ? null : dirname($__file);
-			$__file = var_export($__file, true);
-			$__dir = var_export($__dir, true);
+			$__file = static::includeString($__file);
+			$__dir = static::includeString($__dir);
+			$__server = array(
+				'QUERY_STRING',
+				'AUTH_USER',
+				'AUTH_PW',
+				'PATH_INFO',
+				'REQUEST_METHOD',
+				'USER_AGENT' => 'HTTP_USER_AGENT',
+				'REFERER' => 'HTTP_REFERER',
+				'HOST' => 'HTTP_HOST',
+				'URI' => 'REQUEST_URI',
+				'IP' => 'REMOTE_ADDR',
+			);
+			foreach($__server as $key => $value)
+			{
+				if(is_int($key))
+				{
+					$key = $value;
+				}
+				$content = preg_replace(
+					'#(?<![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$]|::|->)__' . preg_quote($key) . '(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])#',
+					'$_SERVER['.static::includeString($value).']',
+					$content
+				);
+			}
 
 			$content = static::replace($content, array(
 
