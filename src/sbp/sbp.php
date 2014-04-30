@@ -1036,19 +1036,19 @@ namespace Sbp
 				self::SUBST.self::SUBST
 					=> self::SUBST,
 
-				'#(?<![a-zA-Z0-9_\x7f-\xff\$])('.self::IF_BLOKCS.')(?:\s+(\S.*))?\s*\{#U'
+				'#(?<![a-zA-Z0-9_\x7f-\xff\$])('.self::IF_BLOKCS.')(?:[\t ]+(\S.*))?\s*\{#U'
 					=> '$1 ($2) {',
 
-				'#(?<![a-zA-Z0-9_\x7f-\xff\$])(function\s+'.self::VALIDNAME.')(?:\s+(array\s.+|[A-Z\$\&].+))?\s*\{#U'
+				'#(?<![a-zA-Z0-9_\x7f-\xff\$])(function[\t ]+'.self::VALIDNAME.')(?:[\t ]+(array[\t ].+|[A-Z\$\&].+))?\s*\{#U'
 					=> '$1 ($2) {',
 
-				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function\s*(array\s.+|[A-Z\$\&].+)?\s*\{#U'
+				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function[\t ]*(array\s.+|[A-Z\$\&].+)?\s*\{#U'
 					=> 'function ($1) {',
 
 				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function\s+use(?![a-zA-Z0-9_\x7f-\xff])#U'
 					=> 'function () use',
 
-				'#(?<![a-zA-Z0-9_\x7f-\xff\$])(function.*[^a-zA-Z0-9_\x7f-\xff\$])use\s*((array\s.+|[A-Z\$\&].+)\{)#U'
+				'#(?<![a-zA-Z0-9_\x7f-\xff\$])(function.*[^a-zA-Z0-9_\x7f-\xff\$])use[\t ]*((array[\t ].+|[A-Z\$\&].+)\{)#U'
 					=> '$1 ) use ( $2',
 
 				'#\((\([^\(\)]+\))\)#'
