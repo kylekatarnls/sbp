@@ -1036,6 +1036,9 @@ namespace Sbp
 				self::SUBST.self::SUBST
 					=> self::SUBST,
 
+				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function(\s[^{]*);#'
+					=> 'function$1 {}',
+
 				'#(?<![a-zA-Z0-9_\x7f-\xff\$])('.self::IF_BLOKCS.')(?:[\t ]+(\S.*))?\s*\{#U'
 					=> '$1 ($2) {',
 
@@ -1058,7 +1061,7 @@ namespace Sbp
 					=> '$1{} $2',
 
 				'#\(('.self::PARENTHESES.')\)#'
-					=> '$1'
+					=> '$1',
 
 			));
 			return $content;
