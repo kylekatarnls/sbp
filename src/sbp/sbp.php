@@ -729,8 +729,8 @@ namespace Sbp
 				'#(?<![a-zA-Z0-9_])f°\s*\(#'
 					=> 'function(',
 
-				'#(?<![a-zA-Z0-9_])f°\s*(\$|use|\{|\n|$)#'
-					=> 'function $1',
+				'#(?<![a-zA-Z0-9_])f°(\s*(?:\$|use|\{|\n|$))#'
+					=> 'function$1',
 
 
 				/****************/
@@ -1042,7 +1042,7 @@ namespace Sbp
 				'#(?<![a-zA-Z0-9_\x7f-\xff\$])(function[\t ]+'.self::VALIDNAME.')(?:[\t ]+(array[\t ].+|[A-Z\$\&].+))?\s*\{#U'
 					=> '$1 ($2) {',
 
-				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function[\t ]*(array\s.+|[A-Z\$\&].+)?\s*\{#U'
+				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function[\t ]*(array[\t ].+|[A-Z\$\&].+)?\s*\{#U'
 					=> 'function ($1) {',
 
 				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function\s+use(?![a-zA-Z0-9_\x7f-\xff])#U'
