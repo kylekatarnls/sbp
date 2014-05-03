@@ -49,10 +49,6 @@ class sbpTest extends \PHPUnit_Framework_TestCase
 
 	static protected function matchContent($from, $to)
 	{
-		if(is_null($message))
-		{
-			$message = "sbp::fileParse(\"$from\") do match the compiled file";
-		}
 		$trim = static::IGNORE_BRACES ? "{}\n\r\t " : "\n\r\t ";
 		$out = trim(file_get_contents($fromPath = $from));
 		$in = trim(sbp::testContent($toPath = preg_replace('#^(.+)(/[^/]+)$#', '$1/.src$2', $from)));
