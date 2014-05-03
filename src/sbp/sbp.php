@@ -19,14 +19,14 @@ namespace Sbp
 		const COMP = '`';
 		const VALUE = 'µ';
 		const CHAINER = '¤';
-		const COMMENTS = '\/\/.*(?=\n)|\/\*(?:.|\n)*\*\/';
+		const COMMENTS = '(?:\/\/|\#).*(?=\n)|\/\*(?:.|\n)*\*\/';
 		const OPERATORS = '\|\||\&\&|or|and|xor|is|not|<>|lt|gt|<=|>=|\!==|===|\?\:';
 		const PHP_WORDS = 'true|false|null|echo|print|static|yield|var|exit|as|case|default|clone|endswtch|endwhile|endfor|endforeach|callable|endif|enddeclare|final|finally|label|goto|const|global|namespace|instanceof|new|throw|include|require|include_once|require_once|use|exit|continue|return|break|extends|implements|abstract|public|protected|private|function|interface';
 		const BLOKCS = 'if|else|elseif|try|catch|function|class|trait|switch|while|for|foreach|do';
 		const ALLOW_ALONE_CUSTOM_OPERATOR = 'if|elseif|foreach|for|while|or|and|xor';
 		const MUST_CLOSE_BLOKCS = 'try|catch|function|class|trait|switch|interface';
 		const IF_BLOKCS = 'if|elseif|catch|switch|while|for|foreach';
-		const START = '((?:^|[\n;\{\}])(?:\/\/.*(?=\n)|\/\*(?:.|\n)*\*\/\s*)*\s*)';
+		const START = '((?:^|[\n;\{\}])(?:(?:\/\/|\#).*(?=\n)|\/\*(?:.|\n)*\*\/\s*)*\s*)';
 		const ABSTRACT_SHORTCUTS = 'abstract|abst|abs|a';
 		const BENCHMARK_END = -1;
 
@@ -313,7 +313,7 @@ namespace Sbp
 			}
 			$id = count($GLOBALS['replaceStrings']);
 			$GLOBALS['replaceStrings'][$id] = $match;
-			if(strpos($match, '/') === 0)
+			if(in_array(substr($match, 0, 1), array('/', '#')))
 			{
 				$GLOBALS['commentStrings'][] = $id;
 			}
@@ -612,8 +612,32 @@ namespace Sbp
 				$__file = static::$lastParsedFile;
 			}
 			$__dir = is_null($__file) ? null : dirname($__file);
-			$__file = var_export($__file, true);
-			$__dir = var_export($__dir, true);
+			$__file = static::includeString($__file);
+			$__dir = static::includeString($__dir);
+			$__server = array(
+				'QUERY_STRING',
+				'AUTH_USER',
+				'AUTH_PW',
+				'PATH_INFO',
+				'REQUEST_METHOD',
+				'USER_AGENT' => 'HTTP_USER_AGENT',
+				'REFERER' => 'HTTP_REFERER',
+				'HOST' => 'HTTP_HOST',
+				'URI' => 'REQUEST_URI',
+				'IP' => 'REMOTE_ADDR',
+			);
+			foreach($__server as $key => $value)
+			{
+				if(is_int($key))
+				{
+					$key = $value;
+				}
+				$content = preg_replace(
+					'#(?<![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$]|::|->)__' . preg_quote($key) . '(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])#',
+					'$_SERVER['.static::includeString($value).']',
+					$content
+				);
+			}
 
 			$content = static::replace($content, array(
 
@@ -706,8 +730,8 @@ namespace Sbp
 				'#(?<![a-zA-Z0-9_])f°\s*\(#'
 					=> 'function(',
 
-				'#(?<![a-zA-Z0-9_])f°\s*(\$|use|\{|\n|$)#'
-					=> 'function $1',
+				'#(?<![a-zA-Z0-9_])f°(\s*(?:\$|use|\{|\n|$))#'
+					=> 'function$1',
 
 
 				/****************/
@@ -839,9 +863,13 @@ namespace Sbp
 				/**********************/
 				/* Array short syntax */
 				/**********************/
-				'#{(\s*(?:\n+[\t ]*'.self::VALIDNAME.'[\t ]*=[^\n]+)*\s*)}#'
+				'#{(\s*(?:\n+[\t ]*'.self::VALIDNAME.'[\t ]*=[^\n]+)+\s*)}#'
 					=> array(get_class(), 'arrayShortSyntax'),
 
+
+				/***********/
+				/* Chainer */
+				/***********/
 				'#'.preg_quote(self::CHAINER).'('.self::PARENTHESES.')#'
 					=> "(new \\Sbp\\Chainer($1))",
 
@@ -1028,19 +1056,22 @@ namespace Sbp
 				self::SUBST.self::SUBST
 					=> self::SUBST,
 
-				'#(?<![a-zA-Z0-9_\x7f-\xff\$])('.self::IF_BLOKCS.')(?:\s+(\S.*))?\s*\{#U'
+				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function(\s[^{]*);#'
+					=> 'function$1 {}',
+
+				'#(?<![a-zA-Z0-9_\x7f-\xff\$])('.self::IF_BLOKCS.')(?:[\t ]+(\S.*))?\s*\{#U'
 					=> '$1 ($2) {',
 
-				'#(?<![a-zA-Z0-9_\x7f-\xff\$])(function\s+'.self::VALIDNAME.')(?:\s+(array\s.+|_*[A-Z\$\&\\\\].+))?\s*\{#U'
+				'#(?<![a-zA-Z0-9_\x7f-\xff\$])(function[\t ]+'.self::VALIDNAME.')(?:[\t ]+(array[\t ].+|_*[A-Z\$\&\\\\].+))?\s*\{#U'
 					=> '$1 ($2) {',
 
-				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function\s*(array\s.+|_*[A-Z\$\&\\\\].+)?\s*\{#U'
+				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function[\t ]*(array[\t ].+|_*[A-Z\$\&\\\\].+)?\s*\{#U'
 					=> 'function ($1) {',
 
 				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function\s+use(?![a-zA-Z0-9_\x7f-\xff])#U'
 					=> 'function () use',
 
-				'#(?<![a-zA-Z0-9_\x7f-\xff\$])(function.*[^a-zA-Z0-9_\x7f-\xff\$])use\s*((array\s.+|_*[A-Z\$\&\\\\].+)\{)#U'
+				'#(?<![a-zA-Z0-9_\x7f-\xff\$])(function.*[^a-zA-Z0-9_\x7f-\xff\$])use[\t ]*((array[\t ].+|_*[A-Z\$\&\\\\].+)\{)#U'
 					=> '$1 ) use ( $2',
 
 				'#\((\([^\(\)]+\))\)#'
@@ -1050,7 +1081,7 @@ namespace Sbp
 					=> '$1{} $2',
 
 				'#\(('.self::PARENTHESES.')\)#'
-					=> '$1'
+					=> '$1',
 
 			));
 			return $content;
