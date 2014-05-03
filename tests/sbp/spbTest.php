@@ -56,7 +56,7 @@ class sbpTest extends \PHPUnit_Framework_TestCase
 	{
 		$trim = static::IGNORE_BRACES ? "{}\n\r\t " : "\n\r\t ";
 		$out = trim(file_get_contents($fromPath = $from));
-		$in = trim(sbp::testContent($toPath = preg_replace('#^(.+)(/[^/]+)$#', '$1/.src$2', $from)));
+		$in = trim(sbp::testFileContent($toPath = preg_replace('#^(.+)(/[^/]+)$#', '$1/.src$2', $from)));
 		$to = str_replace(array("\n", "\r", "\t", ' '), '', $out);
 		$from = str_replace(array("\n", "\r", "\t", ' '), '', $in);
 		$to = preg_replace('#/\*.*\*/#U', '', $to);
