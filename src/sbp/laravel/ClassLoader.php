@@ -1,6 +1,6 @@
-<?php namespace sbp\laravel;
+<?php namespace Sbp\Laravel;
 
-use \sbp\sbp;
+use \Sbp\Sbp;
 
 class ClassLoader extends \Illuminate\Support\ClassLoader
 {
@@ -16,7 +16,7 @@ class ClassLoader extends \Illuminate\Support\ClassLoader
 
 		foreach (static::$directories as $directory)
 		{
-			if (sbp::fileExists($directory.DIRECTORY_SEPARATOR.$class, $path))
+			if (Sbp::fileExists($directory.DIRECTORY_SEPARATOR.$class, $path))
 			{
 				require_once $path;
 
@@ -34,17 +34,17 @@ class ClassLoader extends \Illuminate\Support\ClassLoader
 	{
 		if ( ! static::$registered)
 		{
-			static::$registered = spl_autoload_register(array('\sbp\laravel\ClassLoader', 'load'), true, $prepend);
+			static::$registered = spl_autoload_register(array('\\Sbp\\Laravel\\ClassLoader', 'load'), true, $prepend);
 			$app = $storage = __DIR__.'/../../../../../../app/';
-			sbp::writeIn(sbp::SAME_DIR);
-			sbp::fileExists($app.'routes');
+			Sbp::writeIn(Sbp::SAME_DIR);
+			Sbp::fileExists($app.'routes');
 			$storage = $app . 'storage/sbp';
 			if( ! file_exists($storage))
 			{
 				mkdir($storage, 0777);
 				file_put_contents($storage . '/.gitignore', "*\n!.gitignore");
 			}
-			sbp::writeIn($storage, $callback);
+			Sbp::writeIn($storage, $callback);
 		}
 	}
 }

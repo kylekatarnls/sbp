@@ -47,7 +47,7 @@ class sbpTest extends \PHPUnit_Framework_TestCase
 		return $this->assertTrue($from === $to, $message.", it return\"$parsed\"\n\n");
 	}
 
-	protected function assertParseFile($from, $message = null)
+	static protected function matchContent($from, $to)
 	{
 		if(is_null($message))
 		{
@@ -60,6 +60,7 @@ class sbpTest extends \PHPUnit_Framework_TestCase
 		$from = str_replace(array("\n", "\r", "\t", ' '), '', $in);
 		$to = preg_replace('#/\*.*\*/#U', '', $to);
 		$from = preg_replace('#/\*.*\*/#U', '', $from);
+		$trim = static::IGNORE_BRACES ? "{}\n\r\t " : "\n\r\t ";
 		$lastDiffKey = -2 * static::WRAP_LINES;
 		$lastPrintedKey = $lastDiffKey;
 		if($from !== $to)
@@ -93,7 +94,22 @@ class sbpTest extends \PHPUnit_Framework_TestCase
 				}
 			}
 		}
-		return $this->assertTrue($from === $to, $message);
+		return ($from === $to);
+	}
+
+	protected function assertParseFile($from, $message = null, $keepMessage = null)
+	{
+		if(is_null($message))
+		{
+			$message = "sbp::fileParse(\"$from\") do match the compiled file";
+		}
+		if(is_null($keepMessage))
+		{
+			$keepMessage = "Normal PHP in compiled \"$from\" must be keeped intact if reparsed";
+		}
+		$to = preg_replace('#^(.+)(/[^/]+)$#', '$1/.src$2', $from);
+		$this->assertTrue(static::matchContent($from, $to), $message);
+		$this->assertTrue(static::matchContent($from, $from), $keepMessage);
 	}
 
 	public function testParse()
