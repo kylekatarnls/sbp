@@ -721,16 +721,19 @@ namespace Sbp
 				'#'.self::START.'<(?![\?=])#'
 					=> '$1return ',
 
-				'#'.self::START.'@f\s+('.self::VALIDNAME.')#'
+				'#'.self::START.'@f[\t ]+('.self::VALIDNAME.')#'
 					=> '$1if-defined-function $2',
 
-				'#'.self::START.'f\s+('.self::VALIDNAME.')#'
+				'#'.self::START.'f[\t ]+('.self::VALIDNAME.')#'
 					=> '$1function $2',
 
-				'#(?<![a-zA-Z0-9_])f°\s*\(#'
+				'#(?<![a-zA-Z0-9_])f°[\t ]*\(#'
 					=> 'function(',
 
-				'#(?<![a-zA-Z0-9_])f°(\s*(?:\$|use|\{|\n|$))#'
+				'#(?<![a-zA-Z0-9_])f°([\t ]*(?:\n|\r|$))#'
+					=> 'function ()$1',
+
+				'#(?<![a-zA-Z0-9_])f°([\t ]*(?:\$|use|\{|\n|$))#'
 					=> 'function$1',
 
 
@@ -766,22 +769,22 @@ namespace Sbp
 				/***********/
 				/* Methods */
 				/***********/
-				'#'.self::START.'\*\s*(('.$validComments.'\s*)*'.self::VALIDNAME.')#U'
+				'#'.self::START.'\*[\t ]*(('.$validComments.'[\t ]*)*'.self::VALIDNAME.')#U'
 					=> '$1protected function $2',
 
-				'#'.self::START.'-\s*(('.$validComments.'\s*)*'.self::VALIDNAME.')#U'
+				'#'.self::START.'-[\t ]*(('.$validComments.'[\t ]*)*'.self::VALIDNAME.')#U'
 					=> '$1private function $2',
 
-				'#'.self::START.'\+\s*(('.$validComments.'\s*)*'.self::VALIDNAME.')#U'
+				'#'.self::START.'\+[\t ]*(('.$validComments.'[\t ]*)*'.self::VALIDNAME.')#U'
 					=> '$1public function $2',
 
-				'#'.self::START.'s\*\s*(('.$validComments.'\s*)*'.self::VALIDNAME.')#U'
+				'#'.self::START.'s\*[\t ]*(('.$validComments.'[\t ]*)*'.self::VALIDNAME.')#U'
 					=> '$1static protected function $2',
 
-				'#'.self::START.'s-\s*(('.$validComments.'\s*)*'.self::VALIDNAME.')#U'
+				'#'.self::START.'s-[\t ]*(('.$validComments.'[\t ]*)*'.self::VALIDNAME.')#U'
 					=> '$1static private function $2',
 
-				'#'.self::START.'s\+\s*(('.$validComments.'\s*)*'.self::VALIDNAME.')#U'
+				'#'.self::START.'s\+[\t ]*(('.$validComments.'[\t ]*)*'.self::VALIDNAME.')#U'
 					=> '$1static public function $2',
 
 
