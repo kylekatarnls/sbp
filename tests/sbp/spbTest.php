@@ -59,19 +59,25 @@ class sbpTest extends \PHPUnit_Framework_TestCase
 		$in = trim(sbp::testFileContent($toPath = preg_replace('#^(.+)(/[^/]+)$#', '$1/.src$2', $from)));
 		$to = str_replace(array("\n", "\r", "\t", ' '), '', $out);
 		$from = str_replace(array("\n", "\r", "\t", ' '), '', $in);
-		$to = preg_replace('#/\*.*\*/#U', '', $to);
-		$from = preg_replace('#/\*.*\*/#U', '', $from);
-		$trim = static::IGNORE_BRACES ? "{}\n\r\t " : "\n\r\t ";
+		$cleaner = function ($value) use($trim)
+		{
+			$value = preg_replace('#/\*.*\*/#U', '', trim($value, $trim));
+			$value = preg_replace('#\s*[\[\]\(\)\{\},!]\s*#', '$1', $value);
+		};
+		$to = $cleaner($to);
+		$from = $cleaner($from);
 		$lastDiffKey = -2 * static::WRAP_LINES;
 		$lastPrintedKey = $lastDiffKey;
 		if($from !== $to)
 		{
 			echo "\n=====================================\n- $toPath (parsed)\n+ $fromPath\n";
-			$in = preg_split('#\r\n|\r|\n#', preg_replace('#(\n[\t ]*)(\n[\t ]*)}([\t ]*)(?=\S)#', '$1}$2$3', $in));
-			$out = preg_split('#\r\n|\r|\n#', preg_replace('#(\n[\t ]*)(\n[\t ]*)}([\t ]*)(?=\S)#', '$1}$2$3', $out));
+			foreach(array('in', 'out') as $var)
+			{
+				$$var = preg_split('#\r\n|\r|\n#', preg_replace('#(\n[\t ]*)(\n[\t ]*)}([\t ]*)(?=\S)#', '$1}$2$3', $$var));
+			}
 			foreach($in as $key => $line)
 			{
-				if(preg_replace('#/\*.*\*/#U', '', trim($line, $trim)) === preg_replace('#/\*.*\*/#U', '', trim(isset($out[$key]) ? $out[$key] : '', $trim)))
+				if($cleaner($line) === $cleaner(isset($out[$key]) ? $out[$key] : ''))
 				{
 					if($key - $lastDiffKey === static::WRAP_LINES)
 					{

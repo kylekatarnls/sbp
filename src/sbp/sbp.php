@@ -961,7 +961,7 @@ namespace Sbp
 			$values = array();
 			$valueRegex = preg_quote(self::SUBST.self::VALUE).'([0-9]+)'.preg_quote(self::VALUE.self::SUBST);
 			$valueRegexNonCapturant = preg_quote(self::SUBST.self::VALUE).'[0-9]+'.preg_quote(self::VALUE.self::SUBST);
-			$validExpressionRegex = '(?<![a-zA-Z0-9_\x7f-\xff\$\\\\])(?:\$*[a-zA-Z0-9_\x7f-\xff\\\\]+(?:'.$valueRegexNonCapturant.')+|'.$valueRegexNonCapturant.'|'.$validSubst.'|[\\\\a-zA-Z_][\\\\a-zA-Z0-9_]*|'.self::NUMBER.')';
+			$validExpressionRegex = '(?<![a-zA-Z0-9_\x7f-\xff\$\\\\])(?:[a-zA-Z0-9_\x7f-\xff\\\\]+(?:'.$valueRegexNonCapturant.')+|\$+[a-zA-Z0-9_\x7f-\xff\\\\]+(?:'.$valueRegexNonCapturant.')*|'.$valueRegexNonCapturant.'|'.$validSubst.'|[\\\\a-zA-Z_][\\\\a-zA-Z0-9_]*|'.self::NUMBER.')';
 			static::$validExpressionRegex = $validExpressionRegex;
 			$restoreValues = function ($content) use(&$values)
 			{
@@ -1003,7 +1003,7 @@ namespace Sbp
 					/********************/
 					/* Custom operators */
 					/********************/
-					'#(?<=^|[,\n=*\/\^%&|<>!+-]|'.$aloneCustomOperator.')[\n\t ]+(?!'.$keyWords.')([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)[\t ]+(?!'.$keyWords.')('.$validExpressionRegex.')(?!::|[a-zA-Z0-9_\x7f-\xff])#'
+					'#(?<=^|[,\n=*\/\^%&|<>!+-]|'.$aloneCustomOperator.')[\n\t ]+(?!'.$keyWords.'|array|[\[\]\(\)\{\}])([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)[\t ]+(?!'.$keyWords.')('.$validExpressionRegex.')(?!::|[a-zA-Z0-9_\x7f-\xff])#'
 						=> function ($match) use($restoreValues, &$values)
 						{
 							list($all, $keyWord, $right) = $match;
@@ -1012,7 +1012,7 @@ namespace Sbp
 							return ' __sbp_'.$keyWord.self::SUBST.self::VALUE.$id.self::VALUE.self::SUBST;
 						},
 
-					'#('.$validExpressionRegex.')(?<!'.$previousKeyWords.')[\t ]+(?!'.$keyWords.')([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)[\t ]+(?!'.$keyWords.')('.$validExpressionRegex.')(?!::|[a-zA-Z0-9_\x7f-\xff])#'
+					'#('.$validExpressionRegex.')(?<!'.$previousKeyWords.')[\t ]+(?!'.$keyWords.'|array|[\[\]\(\)\{\}])([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)[\t ]+(?!'.$keyWords.')('.$validExpressionRegex.')(?!::|[a-zA-Z0-9_\x7f-\xff])#'
 						=> function ($match) use($restoreValues, &$values)
 						{
 							list($all, $left, $keyWord, $right) = $match;
