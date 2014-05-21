@@ -1003,7 +1003,7 @@ namespace Sbp
 					/********************/
 					/* Custom operators */
 					/********************/
-					'#(?<=^|[,\n=*\/\^%&|<>!+-]|'.$aloneCustomOperator.')[\n\t ]+(?!'.$keyWords.'|array|[\[\]\(\)\{\}])([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)[\t ]+(?!'.$keyWords.')('.$validExpressionRegex.')(?!::|[a-zA-Z0-9_\x7f-\xff])#'
+					'#(?<=^|[,\n=*\/\^%&|<>!+-]|'.$aloneCustomOperator.')[\n\t ]+(?!'.$keyWords.'|array|['.self::SUBST.self::VALUE.self::COMP.'\[\]\(\)\{\}])([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)[\t ]+(?!'.$keyWords.')('.$validExpressionRegex.')(?!::|[a-zA-Z0-9_\x7f-\xff])#'
 						=> function ($match) use($restoreValues, &$values)
 						{
 							list($all, $keyWord, $right) = $match;
@@ -1012,7 +1012,7 @@ namespace Sbp
 							return ' __sbp_'.$keyWord.self::SUBST.self::VALUE.$id.self::VALUE.self::SUBST;
 						},
 
-					'#('.$validExpressionRegex.')(?<!'.$previousKeyWords.')[\t ]+(?!'.$keyWords.'|array|[\[\]\(\)\{\}])([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)[\t ]+(?!'.$keyWords.')('.$validExpressionRegex.')(?!::|[a-zA-Z0-9_\x7f-\xff])#'
+					'#('.$validExpressionRegex.')(?<!'.$previousKeyWords.')[\t ]+(?!'.$keyWords.'|array|['.self::SUBST.self::VALUE.self::COMP.'\[\]\(\)\{\}])([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)[\t ]+(?!'.$keyWords.')('.$validExpressionRegex.')(?!::|[a-zA-Z0-9_\x7f-\xff])#'
 						=> function ($match) use($restoreValues, &$values)
 						{
 							list($all, $left, $keyWord, $right) = $match;
