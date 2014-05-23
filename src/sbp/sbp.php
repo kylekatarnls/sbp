@@ -1054,15 +1054,6 @@ namespace Sbp
 				'#(?<=^|\s)(function\s[^{]+);#U'
 					=> '$1 {}',
 
-			));
-			$content = static::replaceStrings($content);
-			$content = static::replace($content, array(
-
-				"\r" => ' ',
-
-				self::SUBST.self::SUBST
-					=> self::SUBST,
-
 				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function(\s[^{]*);#'
 					=> 'function$1 {}',
 
@@ -1072,7 +1063,7 @@ namespace Sbp
 				'#(?<![a-zA-Z0-9_\x7f-\xff\$])(function[\t ]+'.self::VALIDNAME.')(?:[\t ]+(array[\t ].+|_*[A-Z\$\&\\\\].+))?\s*\{#U'
 					=> '$1 ($2) {',
 
-				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function[\t ]*(array[\t ].+|_*[A-Z\$\&\\\\].+)?\s*\{#U'
+				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function[\t ]+(array[\t ].+|_*[A-Z\$\&\\\\].+)?\s*\{#U'
 					=> 'function ($1) {',
 
 				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function\s+use(?![a-zA-Z0-9_\x7f-\xff])#U'
@@ -1086,6 +1077,15 @@ namespace Sbp
 
 				'#(catch\s*\([^\)]+\)\s*)([^\s\{])#'
 					=> '$1{} $2',
+
+			));
+			$content = static::replaceStrings($content);
+			$content = static::replace($content, array(
+
+				"\r" => ' ',
+
+				self::SUBST.self::SUBST
+					=> self::SUBST,
 
 				'#\(('.self::PARENTHESES.')\)#'
 					=> '$1',
