@@ -268,9 +268,9 @@ namespace Sbp
 				$content = substr($content, 1);
 				$find = self::findLastBlock($content);
 				$pos = $find ?: 0;
-				return $find !== false && substr_count($content, '{', $pos) === 0;
+				return $find !== false && !preg_match('#(?<!->)\s*\{#U', substr($content, $pos));
 			}
-			return $find !== false && substr_count($line, '{', $pos) === 0;
+			return $find !== false && !preg_match('#(?<!->)\s*\{#U', substr($line, $pos));
 		}
 
 		static public function contentTab($match)
@@ -1057,19 +1057,19 @@ namespace Sbp
 				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function(\s[^{]*);#'
 					=> 'function$1 {}',
 
-				'#(?<![a-zA-Z0-9_\x7f-\xff\$])('.self::IF_BLOKCS.')(?:[\t ]+(\S.*))?\s*\{#U'
+				'#(?<![a-zA-Z0-9_\x7f-\xff\$])('.self::IF_BLOKCS.')(?:[\t ]+(\S.*))?(?<!->)\s*\{#U'
 					=> '$1 ($2) {',
 
-				'#(?<![a-zA-Z0-9_\x7f-\xff\$])(function[\t ]+'.self::VALIDNAME.')(?:[\t ]+(array[\t ].+|_*[A-Z\$\&\\\\].+))?\s*\{#U'
+				'#(?<![a-zA-Z0-9_\x7f-\xff\$])(function[\t ]+'.self::VALIDNAME.')(?:[\t ]+(array[\t ].+|_*[A-Z\$\&\\\\].+))?(?<!->)\s*\{#U'
 					=> '$1 ($2) {',
 
-				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function[\t ]+(array[\t ].+|_*[A-Z\$\&\\\\].+)?\s*\{#U'
+				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function[\t ]+(array[\t ].+|_*[A-Z\$\&\\\\].+)?(?<!->)\s*\{#U'
 					=> 'function ($1) {',
 
 				'#(?<![a-zA-Z0-9_\x7f-\xff\$])function\s+use(?![a-zA-Z0-9_\x7f-\xff])#U'
 					=> 'function () use',
 
-				'#(?<![a-zA-Z0-9_\x7f-\xff\$])(function.*[^a-zA-Z0-9_\x7f-\xff\$])use[\t ]*((array[\t ].+|_*[A-Z\$\&\\\\].+)\{)#U'
+				'#(?<![a-zA-Z0-9_\x7f-\xff\$])(function.*[^a-zA-Z0-9_\x7f-\xff\$])use[\t ]*((array[\t ].+|_*[A-Z\$\&\\\\].+)(?<!->)[\t ]*\{)#U'
 					=> '$1 ) use ( $2',
 
 				'#\((\([^\(\)]+\))\)#'
