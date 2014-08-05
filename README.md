@@ -10,4 +10,4 @@ SBP allow you to write a shorter code than PHP wich is replaced just in time by 
 -------------------------------
 
 The documentation (french) :
-[http://selfbuild.free.fr/sbp/](http://selfbuild.free.fr/sbp/)
+[http://sbp.selfbuild.fr/](http://sbp.selfbuild.fr/)
