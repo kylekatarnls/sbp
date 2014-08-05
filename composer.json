@@ -3,18 +3,20 @@
   "type": "library",
   "description": "Shoter Built PHP",
   "keywords": [
+    "langage",
     "php",
     "precompiler",
     "shorter",
-    "built"
+    "built",
+    "syntaxic sugar"
   ],
   "homepage": "https://github.com/kylekatarnls/sbp",
   "license": "MIT",
   "authors": [
     {
-      "name": "Kyle Katarn",
+      "name": "SBP SelfBuild",
       "email": "sbp@selfbuild.fr",
-      "homepage": "http://selfbuild.free.fr/sbp/"
+      "homepage": "http://sbp.selfbuild.fr/"
     }
   ],
   "require": {
