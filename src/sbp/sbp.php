@@ -516,18 +516,23 @@ namespace Sbp
 			);
 		}
 
+		static private function loadPlugins($content)
+		{
+			foreach(static::$plugins as $replace)
+			{
+				$content = is_array($replace) ? static::replace($content, $replace) : $replace($content);
+			}
+			return $content;
+		}
+
 		static public function parse($content)
 		{
-			$detect = (strpos($content, 'trois =') !== false);
 			$GLOBALS['replaceStrings'] = array();
 			$GLOBALS['htmlCodes'] = array();
 			$GLOBALS['quotedStrings'] = array();
 			$GLOBALS['commentStrings'] = array();
 
-			foreach(static::$plugins as $replace)
-			{
-				$content = is_array($replace) ? static::replace($content, $replace) : $replace($content);
-			}
+			$content = static::loadPlugins($content);
 
 			$content = static::replace(
 
