@@ -2,14 +2,15 @@
 
 namespace Sbp\Laravel;
 
-use \Sbp\Sbp;
+use Sbp\Sbp;
 
 class ClassLoader extends \Illuminate\Support\ClassLoader
 {
     /**
      * Load the given class file.
      *
-     * @param  string  $class
+     * @param string $class
+     *
      * @return void
      */
     public static function load($class)

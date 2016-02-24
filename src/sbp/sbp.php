@@ -32,42 +32,42 @@ namespace Sbp
 
         const SAME_DIR = 0x01;
 
-        static protected $prod = false;
-        static protected $destination = 0x01;
-        static protected $callbackWriteIn = null;
-        static protected $lastParsedFile = null;
-        static protected $plugins = array();
-        static protected $validExpressionRegex = null;
+        protected static $prod = false;
+        protected static $destination = 0x01;
+        protected static $callbackWriteIn = null;
+        protected static $lastParsedFile = null;
+        protected static $plugins = array();
+        protected static $validExpressionRegex = null;
 
-        static public function prod($on = true)
+        public static function prod($on = true)
         {
             static::$prod = !!$on;
         }
 
-        static public function dev($off = true)
+        public static function dev($off = true)
         {
             static::$prod = !$off;
         }
 
-        static public function addPlugin($plugin, $from, $to = null)
+        public static function addPlugin($plugin, $from, $to = null)
         {
             if (!is_null($to)) {
-                $from = array( $from => $to );
+                $from = array($from => $to);
             }
             static::$plugins[$plugin] = $from;
         }
 
-        static public function removePlugin($plugin)
+        public static function removePlugin($plugin)
         {
             unset(static::$plugins[$plugin]);
         }
 
-        static public function benchmarkEnd()
+        public static function benchmarkEnd()
         {
             static::benchmark(static::BENCHMARK_END);
         }
 
-        static protected function getBenchmarkHtml(&$list)
+        protected static function getBenchmarkHtml(&$list)
         {
             $previous = null;
             $times = array_keys($list);
@@ -116,7 +116,7 @@ namespace Sbp
                 </html>';
         }
 
-        static protected function recordBenchmark(&$list, $title)
+        protected static function recordBenchmark(&$list, $title)
         {
             $time = strval(microtime(true));
             if (empty($title)) {
@@ -131,34 +131,34 @@ namespace Sbp
             }
         }
 
-        static public function benchmark($title = '')
+        public static function benchmark($title = '')
         {
             static $list = null;
             return static::recordBenchmark($list, $title);
         }
 
-        static public function writeIn($directory = self::SAME_DIR, $callback = null)
+        public static function writeIn($directory = self::SAME_DIR, $callback = null)
         {
             if ($directory !== self::SAME_DIR) {
                 $directory = rtrim($directory, '/\\');
-                if ( ! file_exists($directory)) {
+                if (!file_exists($directory)) {
                     throw new SbpException($directory . " : path not found");
                 }
-                if ( ! is_writable($directory)) {
+                if (!is_writable($directory)) {
                     throw new SbpException($directory . " : persmission denied");
                 }
                 $directory .= DIRECTORY_SEPARATOR;
             }
             self::$destination = $directory;
-            if ( ! is_null($callback)) {
-                if ( ! is_callable($callback)) {
+            if (!is_null($callback)) {
+                if (!is_callable($callback)) {
                     throw new SbpException("Invalid callback");
                 }
                 self::$callbackWriteIn = $callback;
             }
         }
 
-        static public function isSbp($file)
+        public static function isSbp($file)
         {
             return (
                 strpos($file, $k = ' '.self::COMMENT) !== false ||
@@ -170,7 +170,7 @@ namespace Sbp
             );
         }
 
-        static public function parseClass($match)
+        public static function parseClass($match)
         {
             list($all, $start, $class, $extend, $implement, $end) = $match;
             $class = trim($class);
@@ -210,7 +210,7 @@ namespace Sbp
             return $pos;
         }
 
-        static public function isBlock(&$line, &$grouped, $iRead = 0)
+        public static function isBlock(&$line, &$grouped, $iRead = 0)
         {
             if (substr(rtrim($line), -1) === ';') {
                 return false;
@@ -247,12 +247,12 @@ namespace Sbp
             return $find !== false && !preg_match('#(?<!->)\s*\{#U', substr($line, $pos));
         }
 
-        static public function contentTab($match)
+        public static function contentTab($match)
         {
             return $match[1].str_replace("\n", "\n".$match[1], $GLOBALS['sbpContentTab']);
         }
 
-        static public function container($container, $file, $content, $basename = null, $name = null)
+        public static function container($container, $file, $content, $basename = null, $name = null)
         {
             $basename = $basename ?: basename($file);
             $name = $name ?: preg_replace('#\..+$#', '', $basename);
@@ -270,7 +270,7 @@ namespace Sbp
             return str_replace(array_keys($replace), array_values($replace), $container);
         }
 
-        static public function parseWithContainer($container, $file, $content, $basename = null, $name = null)
+        public static function parseWithContainer($container, $file, $content, $basename = null, $name = null)
         {
             $content=self::container($container,$file,'/*sbp-container-end*/'.$content,$fin);
             $content=self::parse($content);
@@ -279,7 +279,7 @@ namespace Sbp
             return implode('',$content);
         }
 
-        static public function replaceString($match)
+        public static function replaceString($match)
         {
             if (is_array($match)) {
                 $match = $match[0];
@@ -296,13 +296,13 @@ namespace Sbp
             return self::COMP.self::SUBST.$id.self::SUBST.self::COMP;
         }
 
-        static protected function stringRegex()
+        protected static function stringRegex()
         {
             $antislash = preg_quote('\\');
             return '([\'"]).*(?<!'.$antislash.')(?:'.$antislash.$antislash.')*\\1';
         }
 
-        static protected function validSubst($motif = '[0-9]+')
+        protected static function validSubst($motif = '[0-9]+')
         {
             if ($motif === '(?:)') {
                 $motif = '(?:[^\S\s])';
@@ -310,7 +310,7 @@ namespace Sbp
             return preg_quote(self::COMP.self::SUBST).$motif.preg_quote(self::SUBST.self::COMP);
         }
 
-        static public function fileMatchnigLetter($file)
+        public static function fileMatchnigLetter($file)
         {
             if (fileowner($file) === getmyuid()) {
                 return 'u';
@@ -321,7 +321,7 @@ namespace Sbp
             return 'o';
         }
 
-        static public function fileParse($from, $to = null)
+        public static function fileParse($from, $to = null)
         {
             if (is_null($to)) {
                 $to = $from;
@@ -340,7 +340,7 @@ namespace Sbp
             return $writed;
         }
 
-        static public function phpFile($file)
+        public static function phpFile($file)
         {
             $callback = (is_null(static::$callbackWriteIn) ?
                 'sha1' :
@@ -352,7 +352,7 @@ namespace Sbp
             );
         }
 
-        static public function fileExists($file, &$phpFile = null)
+        public static function fileExists($file, &$phpFile = null)
         {
             $file = preg_replace('#(\.sbp)?(\.php)?$#', '', $file);
             $sbpFile = $file.'.sbp.php';
@@ -375,14 +375,14 @@ namespace Sbp
             return false;
         }
 
-        static public function sbpFromFile($file)
+        public static function sbpFromFile($file)
         {
             if (preg_match('#/*:(.+):*/#U', file_get_contents($file), $match)) {
                 return $match[1];
             }
         }
 
-        static public function includeFile($file)
+        public static function includeFile($file)
         {
             if (static::$prod) {
                 return include(static::phpFile(preg_replace('#(\.sbp)?(\.php)?$#', '', $file)));
@@ -394,7 +394,7 @@ namespace Sbp
             return include($phpFile);
         }
 
-        static public function includeOnceFile($file)
+        public static function includeOnceFile($file)
         {
             if (static::$prod) {
                 return include_once(static::phpFile(preg_replace('#(\.sbp)?(\.php)?$#', '', $file)));
@@ -406,7 +406,7 @@ namespace Sbp
             return include_once($phpFile);
         }
 
-        static protected function replace($content, $replace)
+        protected static function replace($content, $replace)
         {
             foreach ($replace as $search => $replace) {
                 $catched = false;
@@ -429,14 +429,14 @@ namespace Sbp
             return $content;
         }
 
-        static public function arrayShortSyntax($match)
+        public static function arrayShortSyntax($match)
         {
             return 'array(' .
                 preg_replace('#,(\s*)$#', '$1', preg_replace('#^([\t ]*)('.self::VALIDNAME.')([\t ]*=)(.*[^,]),?(?=[\r\n]|$)#mU', '$1 \'$2\'$3>$4,', $match[1])) .
             ')';
         }
 
-        static public function replaceStrings($content)
+        public static function replaceStrings($content)
         {
             foreach ($GLOBALS['replaceStrings'] as $id => $string) {
                 $content = str_replace(self::COMP.self::SUBST.$id.self::SUBST.self::COMP, $string, $content);
@@ -444,12 +444,12 @@ namespace Sbp
             return $content;
         }
 
-        static public function includeString($string)
+        public static function includeString($string)
         {
             return static::replaceString(var_export(static::replaceStrings(trim($string)), true));
         }
 
-        static protected function replaceSuperMethods($content)
+        protected static function replaceSuperMethods($content)
         {
             $method =  explode('::', __METHOD__);
             return preg_replace_callback(
@@ -470,7 +470,7 @@ namespace Sbp
             return $content;
         }
 
-        static public function parse($content)
+        public static function parse($content)
         {
             $GLOBALS['replaceStrings'] = array();
             $GLOBALS['htmlCodes'] = array();
@@ -707,10 +707,10 @@ namespace Sbp
                     => '$1static private $2',
 
                 '#'.self::START.'s\+\s*(('.$validComments.'\s*)*\$'.self::VALIDNAME.')#U'
-                    => '$1static public $2',
+                    => '$1public static $2',
 
                 '#'.self::START.'s\*\s*(('.$validComments.'\s*)*\$'.self::VALIDNAME.')#U'
-                    => '$1static protected $2',
+                    => '$1protected static $2',
 
 
                 /***********/
@@ -726,13 +726,13 @@ namespace Sbp
                     => '$1public function $2',
 
                 '#'.self::START.'s\*[\t ]*(('.$validComments.'[\t ]*)*'.self::VALIDNAME.')#U'
-                    => '$1static protected function $2',
+                    => '$1protected static function $2',
 
                 '#'.self::START.'s-[\t ]*(('.$validComments.'[\t ]*)*'.self::VALIDNAME.')#U'
                     => '$1static private function $2',
 
                 '#'.self::START.'s\+[\t ]*(('.$validComments.'[\t ]*)*'.self::VALIDNAME.')#U'
-                    => '$1static public function $2',
+                    => '$1public static function $2',
 
 
                 /**********/
@@ -991,7 +991,7 @@ namespace Sbp
                     => 'function () use',
 
                 '#(?<![a-zA-Z0-9_\x7f-\xff\$])(function.*[^a-zA-Z0-9_\x7f-\xff\$])use[\t ]*((array[\t ].+|_*[A-Z\$\&\\\\].+)(?<!->)[\t ]*\{)#U'
-                    => '$1 ) use ( $2',
+                    => '$1) use ($2',
 
                 '#\((\([^\(\)]+\))\)#'
                     => '$1',
