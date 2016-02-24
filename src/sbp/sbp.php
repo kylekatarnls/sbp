@@ -907,10 +907,10 @@ namespace Sbp
                 },
                 explode('|', self::ALLOW_ALONE_CUSTOM_OPERATOR)
             ));
-            $filters = function ($content) use($aloneCustomOperator, $restoreValues, &$values, $valueRegex, $valueRegexNonCapturant, $validSubst, $validExpressionRegex)
+            static $previousKeyWords = self::PHP_WORDS.'|'.self::OPERATORS.'|'.self::MUST_CLOSE_BLOKCS;
+            static $keyWords = self::PHP_WORDS.'|'.self::OPERATORS.'|'.self::BLOKCS;
+            $filters = function ($content) use($previousKeyWords, $keyWords, $aloneCustomOperator, $restoreValues, &$values, $valueRegex, $valueRegexNonCapturant, $validSubst, $validExpressionRegex)
             {
-                $previousKeyWords = self::PHP_WORDS.'|'.self::OPERATORS.'|'.self::MUST_CLOSE_BLOKCS;
-                $keyWords = self::PHP_WORDS.'|'.self::OPERATORS.'|'.self::BLOKCS;
                 return static::replaceSuperMethods(static::replace($content, array(
                     /*********/
                     /* Regex */
