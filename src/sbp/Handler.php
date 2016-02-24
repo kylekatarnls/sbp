@@ -8,17 +8,13 @@ class Handler extends ValueHandler
 {
     public function __call($method, $args)
     {
-        if(is_object($this->value) && method_exists($this->value, $method))
-        {
+        if(is_object($this->value) && method_exists($this->value, $method)) {
             return call_user_func_array(array($this->value, $method), $args);
         }
-        if(is_string($this->value))
-        {
-            if(function_exists('preg_' . $method))
-            {
+        if(is_string($this->value)) {
+            if(function_exists('preg_' . $method)) {
                 $function = 'preg_' . $method;
-                switch($method)
-                {
+                switch($method) {
                     case 'replace':
                     case 'filter':
                     case 'replace_callback':
@@ -44,18 +40,13 @@ class Handler extends ValueHandler
                         break;
                 }
                 return call_user_func_array($function, $args);
-            }
-            elseif(function_exists('str_' . $method))
-            {
+            } elseif(function_exists('str_' . $method)) {
                 $function = 'str_' . $method;
                 array_unshift($args, $this->value);
                 return call_user_func_array($function, $args);
             }
-        }
-        elseif(is_array($this->value))
-        {
-            if(function_exists('array_' . $method))
-            {
+        } elseif(is_array($this->value)) {
+            if(function_exists('array_' . $method)) {
                 $function = 'array_' . $method;
                 array_unshift($args, $this->value);
                 return call_user_func_array($function, $args);

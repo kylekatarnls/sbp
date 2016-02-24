@@ -33,7 +33,7 @@ namespace Sbp
         const SAME_DIR = 0x01;
 
         static protected $prod = false;
-        static protected $destination = self::SAME_DIR;
+        static protected $destination = 0x01;
         static protected $callbackWriteIn = null;
         static protected $lastParsedFile = null;
         static protected $plugins = array();
@@ -51,8 +51,7 @@ namespace Sbp
 
         static public function addPlugin($plugin, $from, $to = null)
         {
-            if(!is_null($to))
-            {
+            if (!is_null($to)) {
                 $from = array( $from => $to );
             }
             static::$plugins[$plugin] = $from;
@@ -79,8 +78,7 @@ namespace Sbp
             }, $times))));
             $list[strval(microtime(true))] = "End benchmark";
             $ul = '';
-            foreach($list as $time => $title)
-            {
+            foreach ($list as $time => $title) {
                 $ul .= '<li>' . (is_null($previous) ? '' : '<b>' . number_format(($time - $previous) * 1000, $len) . 'ms</b>') . $title . '</li>';
                 $previous = $time;
             }
@@ -121,19 +119,13 @@ namespace Sbp
         static protected function recordBenchmark(&$list, $title)
         {
             $time = strval(microtime(true));
-            if(empty($title))
-            {
+            if (empty($title)) {
                 $list = array($time => "Start benchmark");
                 ob_start();
-            }
-            elseif(is_array($list))
-            {
-                if($title === static::BENCHMARK_END)
-                {
+            } elseif (is_array($list)) {
+                if ($title === static::BENCHMARK_END) {
                     exit(static::getBenchmarkHtml($list));
-                }
-                else
-                {
+                } else {
                     $list[$time] = $title;
                 }
             }
@@ -147,24 +139,19 @@ namespace Sbp
 
         static public function writeIn($directory = self::SAME_DIR, $callback = null)
         {
-            if($directory !== self::SAME_DIR)
-            {
+            if ($directory !== self::SAME_DIR) {
                 $directory = rtrim($directory, '/\\');
-                if( ! file_exists($directory))
-                {
+                if ( ! file_exists($directory)) {
                     throw new SbpException($directory . " : path not found");
                 }
-                if( ! is_writable($directory))
-                {
+                if ( ! is_writable($directory)) {
                     throw new SbpException($directory . " : persmission denied");
                 }
                 $directory .= DIRECTORY_SEPARATOR;
             }
             self::$destination = $directory;
-            if( ! is_null($callback))
-            {
-                if( ! is_callable($callback))
-                {
+            if ( ! is_null($callback)) {
+                if ( ! is_callable($callback)) {
                     throw new SbpException("Invalid callback");
                 }
                 self::$callbackWriteIn = $callback;
@@ -187,7 +174,7 @@ namespace Sbp
         {
             list($all, $start, $class, $extend, $implement, $end) = $match;
             $class = trim($class);
-            if(in_array(substr($all, 0, 1), str_split(',(+-/*&|'))
+            if (in_array(substr($all, 0, 1), str_split(',(+-/*&|'))
             || in_array($class, array_merge(
                 array('else', 'try', 'default:', 'echo', 'print', 'exit', 'continue', 'break', 'return', 'do'),
                 explode('|', self::PHP_WORDS)
@@ -206,21 +193,16 @@ namespace Sbp
         static private function findLastBlock(&$line, $block = array())
         {
             $pos = false;
-            if(empty($block))
-            {
+            if (empty($block)) {
                 $block = explode('|', self::BLOKCS);
             }
-            if(!is_array($block))
-            {
+            if (!is_array($block)) {
                 $block = array($block);
             }
-            foreach($block as $word)
-            {
-                if(preg_match('#(?<![a-zA-Z0-9$_])'.$word.'(?![a-zA-Z0-9_])#s', $line, $match, PREG_OFFSET_CAPTURE))
-                {
+            foreach ($block as $word) {
+                if (preg_match('#(?<![a-zA-Z0-9$_])'.$word.'(?![a-zA-Z0-9_])#s', $line, $match, PREG_OFFSET_CAPTURE)) {
                     $p = $match[0][1] + 1;
-                    if($pos === false || $p > $pos)
-                    {
+                    if ($pos === false || $p > $pos) {
                         $pos = $p;
                     }
                 }
@@ -230,37 +212,29 @@ namespace Sbp
 
         static public function isBlock(&$line, &$grouped, $iRead = 0)
         {
-            if(substr(rtrim($line), -1) === ';')
-            {
+            if (substr(rtrim($line), -1) === ';') {
                 return false;
             }
             $find = self::findLastBlock($line);
             $pos = $find ?: 0;
             $ouvre = substr_count($line, '(', $pos);
             $ferme = substr_count($line, ')', $pos);
-            if($ouvre > $ferme)
-            {
+            if ($ouvre > $ferme) {
                 return false;
             }
-            if($ouvre < $ferme)
-            {
+            if ($ouvre < $ferme) {
                 $c = $ferme - $ouvre;
                 $content = ' '.implode("\n", array_slice($grouped, 0, $iRead));
-                while($c !== 0)
-                {
+                while ($c !== 0) {
                     $ouvre = strrpos($content, '(') ?: 0;
                     $ferme = strrpos($content, ')') ?: 0;
-                    if($ouvre === 0 && $ferme === 0)
-                    {
+                    if ($ouvre === 0 && $ferme === 0) {
                         return false;
                     }
-                    if($ouvre > $ferme)
-                    {
+                    if ($ouvre > $ferme) {
                         $c--;
                         $content = substr($content, 0, $ouvre);
-                    }
-                    else
-                    {
+                    } else {
                         $c++;
                         $content = substr($content, 0, $ferme);
                     }
@@ -307,22 +281,16 @@ namespace Sbp
 
         static public function replaceString($match)
         {
-            if(is_array($match))
-            {
+            if (is_array($match)) {
                 $match = $match[0];
             }
             $id = count($GLOBALS['replaceStrings']);
             $GLOBALS['replaceStrings'][$id] = $match;
-            if(in_array(substr($match, 0, 1), array('/', '#')))
-            {
+            if (in_array(substr($match, 0, 1), array('/', '#'))) {
                 $GLOBALS['commentStrings'][] = $id;
-            }
-            elseif(strpos($match, '?') === 0)
-            {
+            } elseif (strpos($match, '?') === 0) {
                 $GLOBALS['htmlCodes'][] = $id;
-            }
-            else
-            {
+            } else {
                 $GLOBALS['quotedStrings'][] = $id;
             }
             return self::COMP.self::SUBST.$id.self::SUBST.self::COMP;
@@ -336,8 +304,7 @@ namespace Sbp
 
         static protected function validSubst($motif = '[0-9]+')
         {
-            if($motif === '(?:)')
-            {
+            if ($motif === '(?:)') {
                 $motif = '(?:[^\S\s])';
             }
             return preg_quote(self::COMP.self::SUBST).$motif.preg_quote(self::SUBST.self::COMP);
@@ -345,12 +312,10 @@ namespace Sbp
 
         static public function fileMatchnigLetter($file)
         {
-            if(fileowner($file) === getmyuid())
-            {
+            if (fileowner($file) === getmyuid()) {
                 return 'u';
             }
-            if(filegroup($file) === getmygid())
-            {
+            if (filegroup($file) === getmygid()) {
                 return 'g';
             }
             return 'o';
@@ -358,17 +323,14 @@ namespace Sbp
 
         static public function fileParse($from, $to = null)
         {
-            if(is_null($to))
-            {
+            if (is_null($to)) {
                 $to = $from;
             }
-            if(!is_readable($from))
-            {
+            if (!is_readable($from)) {
                 throw new SbpException($from." is not readable, try :\nchmod ".static::fileMatchnigLetter($from)."+r ".$from, 1);
                 return false;
             }
-            if(!is_writable($dir = dirname($to)))
-            {
+            if (!is_writable($dir = dirname($to))) {
                 throw new SbpException($dir." is not writable, try :\nchmod ".static::fileMatchnigLetter($dir)."+w ".$dir, 1);
                 return false;
             }
@@ -399,18 +361,13 @@ namespace Sbp
                 static::$callbackWriteIn
             );
             $phpFile = static::phpFile($file);
-            if(!file_exists($phpFile))
-            {
-                if(file_exists($sbpFile))
-                {
+            if (!file_exists($phpFile)) {
+                if (file_exists($sbpFile)) {
                     self::fileParse($sbpFile, $phpFile);
                     return true;
                 }
-            }
-            else
-            {
-                if(file_exists($sbpFile) && filemtime($sbpFile) > filemtime($phpFile))
-                {
+            } else {
+                if (file_exists($sbpFile) && filemtime($sbpFile) > filemtime($phpFile)) {
                     self::fileParse($sbpFile, $phpFile);
                 }
                 return true;
@@ -420,20 +377,17 @@ namespace Sbp
 
         static public function sbpFromFile($file)
         {
-            if(preg_match('#/*:(.+):*/#U', file_get_contents($file), $match))
-            {
+            if (preg_match('#/*:(.+):*/#U', file_get_contents($file), $match)) {
                 return $match[1];
             }
         }
 
         static public function includeFile($file)
         {
-            if(static::$prod)
-            {
+            if (static::$prod) {
                 return include(static::phpFile(preg_replace('#(\.sbp)?(\.php)?$#', '', $file)));
             }
-            if(!static::fileExists($file, $phpFile))
-            {
+            if (!static::fileExists($file, $phpFile)) {
                 throw new SbpException($file." not found", 1);
                 return false;
             }
@@ -442,12 +396,10 @@ namespace Sbp
 
         static public function includeOnceFile($file)
         {
-            if(static::$prod)
-            {
+            if (static::$prod) {
                 return include_once(static::phpFile(preg_replace('#(\.sbp)?(\.php)?$#', '', $file)));
             }
-            if(!static::fileExists($file, $phpFile))
-            {
+            if (!static::fileExists($file, $phpFile)) {
                 throw new SbpException($file." not found", 1);
                 return false;
             }
@@ -456,11 +408,9 @@ namespace Sbp
 
         static protected function replace($content, $replace)
         {
-            foreach($replace as $search => $replace)
-            {
+            foreach ($replace as $search => $replace) {
                 $catched = false;
-                try
-                {
+                try {
                     $content = (is_callable($replace) ?
                         preg_replace_callback($search, $replace, $content) :
                         (substr($search, 0, 1) === '#' ?
@@ -468,14 +418,11 @@ namespace Sbp
                             str_replace($search, $replace, $content)
                         )
                     );
-                }
-                catch(\Exception $e)
-                {
+                } catch(\Exception $e) {
                     $catched = true;
                     throw new SbpException('ERREUR PREG : \''.$e->getMessage()."' in:\n".$search, 1);
                 }
-                if(!$catched && preg_last_error())
-                {
+                if (!$catched && preg_last_error()) {
                     throw new SbpException('ERREUR PREG '.preg_last_error()." in:\n".$search, 1);
                 }
             }
@@ -491,8 +438,7 @@ namespace Sbp
 
         static public function replaceStrings($content)
         {
-            foreach($GLOBALS['replaceStrings'] as $id => $string)
-            {
+            foreach ($GLOBALS['replaceStrings'] as $id => $string) {
                 $content = str_replace(self::COMP.self::SUBST.$id.self::SUBST.self::COMP, $string, $content);
             }
             return $content;
@@ -518,8 +464,7 @@ namespace Sbp
 
         static private function loadPlugins($content)
         {
-            foreach(static::$plugins as $replace)
-            {
+            foreach (static::$plugins as $replace) {
                 $content = is_array($replace) ? static::replace($content, $replace) : $replace($content);
             }
             return $content;
@@ -612,8 +557,7 @@ namespace Sbp
             $validComments = self::validSubst('(?:'.implode('|', $GLOBALS['commentStrings']).')');
 
             $__file = is_null(static::$lastParsedFile) ? null : realpath(static::$lastParsedFile);
-            if($__file === false)
-            {
+            if ($__file === false) {
                 $__file = static::$lastParsedFile;
             }
             $__dir = is_null($__file) ? null : dirname($__file);
@@ -631,10 +575,8 @@ namespace Sbp
                 'URI' => 'REQUEST_URI',
                 'IP' => 'REMOTE_ADDR',
             );
-            foreach($__server as $key => $value)
-            {
-                if(is_int($key))
-                {
+            foreach ($__server as $key => $value) {
+                if (is_int($key)) {
                     $key = $value;
                 }
                 $content = preg_replace(
@@ -828,16 +770,16 @@ namespace Sbp
                     => "$1 = $1 $2 $3",
 
                 '#('.self::VALIDVAR.')\s*\!\?==\s*(\S[^;\n\r]*);#U'
-                    => "if(!isset($1)) { $1 = $4; }",
+                    => "if (!isset($1)) { $1 = $4; }",
 
                 '#('.self::VALIDVAR.')\s*\!\?==\s*(\S[^;\n\r]*)(?=[;\n\r]|\$)#U'
-                    => "if(!isset($1)) { $1 = $4; }",
+                    => "if (!isset($1)) { $1 = $4; }",
 
                 '#('.self::VALIDVAR.')\s*\!\?=\s*(\S[^;\n\r]*);#U'
-                    => "if(!$1) { $1 = $4; }",
+                    => "if (!$1) { $1 = $4; }",
 
                 '#('.self::VALIDVAR.')\s*\!\?=\s*(\S[^;\n\r]*)(?=[;\n\r]|\$)#U'
-                    => "if(!$1) { $1 = $4; }",
+                    => "if (!$1) { $1 = $4; }",
 
                 '#('.self::VALIDVAR.')\s*<->\s*('.self::VALIDVAR.')#U'
                     => "\$_sv = $4; $4 = $1; $1 = \$_sv; unset(\$_sv)",
@@ -888,59 +830,40 @@ namespace Sbp
             $previousWrite = '';
             $iRead = 0;
             $iWrite = 0;
-            foreach($content as $index => &$line)
-            {
-                if(trim($line) !== '')
-                {
+            foreach ($content as $index => &$line) {
+                if (trim($line) !== '') {
                     $espaces = strlen(str_replace("\t", '    ', $line))-strlen(ltrim($line));
                     $c = empty($curind) ? -1 : end($curind);
-                    if($espaces > $c)
-                    {
-                        if(self::isBlock($previousRead, $content, $iRead))
-                        {
-                            if(substr(rtrim($previousRead), -1) !== '{'
-                            && substr(ltrim($line), 0, 1) !== '{')
-                            {
+                    if ($espaces > $c) {
+                        if (self::isBlock($previousRead, $content, $iRead)) {
+                            if (substr(rtrim($previousRead), -1) !== '{'
+                            && substr(ltrim($line), 0, 1) !== '{') {
                                 $curind[] = $espaces;
                                 $previousRead .= '{';
                             }
                         }
-                    }
-                    else if($espaces < $c)
-                    {
-                        if($c = substr_count($line, '}'))
-                        {
+                    } else if ($espaces < $c) {
+                        if ($c = substr_count($line, '}')) {
                             $curind = array_slice($curind, 0, -$c);
                         }
-                        while($espaces < ($pop = end($curind)))
-                        {
-                            if(trim($previousWrite, "\t }") === '')
-                            {
-                                if(strpos($previousWrite, '}') === false)
-                                {
+                        while ($espaces < ($pop = end($curind))) {
+                            if (trim($previousWrite, "\t }") === '') {
+                                if (strpos($previousWrite, '}') === false) {
                                     $previousWrite = str_repeat(' ', $espaces);
                                 }
                                 $previousWrite .= '}';
-                            }
-                            else
-                            {
+                            } else {
                                 $s = strlen(ltrim($line));
-                                if($s && ($d = strlen($line) - $s) > 0)
-                                {
+                                if ($s && ($d = strlen($line) - $s) > 0) {
                                     $line = substr($line, 0, $d).'} '.substr($line, $d);
-                                }
-                                else
-                                {
+                                } else {
                                     $line = '}'.$line;
                                 }
                             }
                             array_pop($curind);
                         }
-                    }
-                    else
-                    {
-                        if(preg_match('#(?<![a-zA-Z0-9_\x7f-\xff$\(])('.self::MUST_CLOSE_BLOKCS.')(?![a-zA-Z0-9_\x7f-\xff])#', $previousRead))
-                        {
+                    } else {
+                        if (preg_match('#(?<![a-zA-Z0-9_\x7f-\xff$\(])('.self::MUST_CLOSE_BLOKCS.')(?![a-zA-Z0-9_\x7f-\xff])#', $previousRead)) {
                             $previousRead .= '{}';
                         }
                     }
@@ -951,14 +874,10 @@ namespace Sbp
                 $iWrite = $index;
             }
             $content = implode("\n", $content);
-            if(!empty($curind))
-            {
-                if(substr($content, -1) === "\n")
-                {
+            if (!empty($curind)) {
+                if (substr($content, -1) === "\n") {
                     $content .= str_repeat('}', count($curind)) . "\n";
-                }
-                else
-                {
+                } else {
                     $content .= "\n" . str_repeat('}', count($curind));
                 }
             }
@@ -970,14 +889,11 @@ namespace Sbp
             static::$validExpressionRegex = $validExpressionRegex;
             $restoreValues = function ($content) use(&$values)
             {
-                foreach($values as $id => &$string)
-                {
-                    if($string !== false)
-                    {
+                foreach ($values as $id => &$string) {
+                    if ($string !== false) {
                         $old = $content;
                         $content = str_replace(self::SUBST.self::VALUE.$id.self::VALUE.self::SUBST, $string, $content);
-                        if($old !== $content)
-                        {
+                        if ($old !== $content) {
                             $string = false;
                         }
                     }
@@ -1033,13 +949,13 @@ namespace Sbp
                 $values[$id] = $restoreValues($filters($match[0]));
                 return self::SUBST.self::VALUE.$id.self::VALUE.self::SUBST;
             };
-            while(($content = preg_replace_callback('#[\(\[][^\(\)\[\]]*[\)\]]#', $substituteValues, $content, -1, $count)) && $count > 0);
+            while (($content = preg_replace_callback('#[\(\[][^\(\)\[\]]*[\)\]]#', $substituteValues, $content, -1, $count)) && $count > 0);
             $content = $restoreValues($filters($content));
             $beforeSemiColon = '(' . $validSubst . '|\+\+|--|[a-zA-Z0-9_\x7f-\xff]!|[a-zA-Z0-9_\x7f-\xff]~|!!|[a-zA-Z0-9_\x7f-\xff\)\]])(?<!<\?php|<\?)';
             $content = static::replace($content, array(
 
                 '#if-defined-(function\s+('.self::VALIDNAME.')([^\{]*)'.self::BRACES.')#'
-                    => 'if(! function_exists(\'$2\')) { $1 }',
+                    => 'if (! function_exists(\'$2\')) { $1 }',
 
                 /******************************/
                 /* Complete with a semi-colon */
@@ -1125,12 +1041,9 @@ namespace
 
     function sbp_include_if_exists($file, $once = false)
     {
-        try
-        {
+        try {
             return sbp_include($file, $once);
-        }
-        catch(Sbp\SbpException $e)
-        {
+        } catch(Sbp\SbpException $e) {
             return false;
         }
     }
