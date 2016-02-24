@@ -38,11 +38,10 @@ class ClassLoader extends \Illuminate\Support\ClassLoader
             $app = $storage = __DIR__.'/../../../../../../app/';
             Sbp::writeIn(Sbp::SAME_DIR);
             Sbp::fileExists($app.'routes');
-            $storage = $app . 'storage/sbp';
-            if (!file_exists($storage))
-            {
+            $storage = $app.'storage/sbp';
+            if (!file_exists($storage)) {
                 mkdir($storage, 0777);
-                file_put_contents($storage . '/.gitignore', "*\n!.gitignore");
+                file_put_contents($storage.'/.gitignore', "*\n!.gitignore");
             }
             Sbp::writeIn($storage, $callback);
         }

@@ -10,9 +10,9 @@ class Handler extends ValueHandler
             return call_user_func_array(array($this->value, $method), $args);
         }
         if (is_string($this->value)) {
-            if (function_exists('preg_' . $method)) {
-                $function = 'preg_' . $method;
-                switch($method) {
+            if (function_exists('preg_'.$method)) {
+                $function = 'preg_'.$method;
+                switch ($method) {
                     case 'replace':
                     case 'filter':
                     case 'replace_callback':
@@ -37,20 +37,24 @@ class Handler extends ValueHandler
                         array_unshift($args, $this->value);
                         break;
                 }
+
                 return call_user_func_array($function, $args);
-            } elseif (function_exists('str_' . $method)) {
-                $function = 'str_' . $method;
+            } elseif (function_exists('str_'.$method)) {
+                $function = 'str_'.$method;
                 array_unshift($args, $this->value);
+
                 return call_user_func_array($function, $args);
             }
         } elseif (is_array($this->value)) {
-            if (function_exists('array_' . $method)) {
-                $function = 'array_' . $method;
+            if (function_exists('array_'.$method)) {
+                $function = 'array_'.$method;
                 array_unshift($args, $this->value);
+
                 return call_user_func_array($function, $args);
             }
         }
         array_unshift($args, $this->value);
+
         return call_user_func_array($method, $args);
     }
 }
