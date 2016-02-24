@@ -2,8 +2,6 @@
 
 namespace Sbp;
 
-use Sbp\ValueHandler;
-
 class Chainer extends ValueHandler
 {
     public function __call($method, $args)

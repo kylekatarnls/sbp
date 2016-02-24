@@ -1,4 +1,4 @@
 <?php
-include_once '../../src/sbp/sbp.php';
+include_once '../../src/Sbp/Sbp.php';
 sbp('main.php');
 ?>
