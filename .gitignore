@@ -1,0 +1,7 @@
+# Coverage
+/build
+coverage.xml
+
+# Composer
+/vendor
+/composer.lock
