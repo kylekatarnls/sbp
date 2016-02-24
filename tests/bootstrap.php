@@ -1,12 +1,12 @@
 <?php
 
-namespace sbp\wrapper;
+namespace Sbp\Wrapper;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use sbp\sbpException;
+use Sbp\SbpException;
 
-class sbp extends \sbp\sbp
+class Sbp extends \Sbp\Sbp
 {
 	const TEST_GET_BENCHMARK_HTML = 'test-get-benchmark-html';
 	const TEST_GET_LIST = 'test-get-list';
@@ -39,7 +39,7 @@ class sbp extends \sbp\sbp
 	}
 }
 
-class testCase extends \PHPUnit_Framework_TestCase
+class TestCase extends \PHPUnit_Framework_TestCase
 {
 	const WRAP_LINES = 5;
 	const IGNORE_BRACES = true;

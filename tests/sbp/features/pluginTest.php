@@ -1,9 +1,9 @@
 <?php
 
-use sbp\wrapper\sbp;
-use sbp\wrapper\testCase;
+use Sbp\Wrapper\Sbp;
+use Sbp\Wrapper\TestCase;
 
-class pluginTest extends testCase
+class PluginTest extends TestCase
 {
 	public function testPlugin()
 	{
