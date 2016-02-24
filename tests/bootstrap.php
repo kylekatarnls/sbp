@@ -5,8 +5,9 @@ namespace Sbp\Wrapper;
 require __DIR__ . '/../vendor/autoload.php';
 
 use Sbp\SbpException;
+use Sbp\Sbp as InitialSbp;
 
-class Sbp extends \Sbp\Sbp
+class Sbp extends InitialSbp
 {
 	const TEST_GET_BENCHMARK_HTML = 'test-get-benchmark-html';
 	const TEST_GET_LIST = 'test-get-list';
