@@ -137,8 +137,11 @@ namespace Sbp
             return static::recordBenchmark($list, $title);
         }
 
-        public static function writeIn($directory = static::SAME_DIR, $callback = null)
+        public static function writeIn($directory = null, $callback = null)
         {
+            if (is_null($directory)) {
+                $directory = static::SAME_DIR;
+            }
             if ($directory !== static::SAME_DIR) {
                 $directory = rtrim($directory, '/\\');
                 if (!file_exists($directory)) {
