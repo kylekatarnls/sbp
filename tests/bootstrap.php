@@ -28,12 +28,10 @@ class Sbp extends InitialSbp
 	static public function benchmark($title = '')
 	{
 		static $list = null;
-		if($title === static::TEST_GET_BENCHMARK_HTML)
-		{
+		if($title === static::TEST_GET_BENCHMARK_HTML) {
 			return static::getBenchmarkHtml($list);
 		}
-		if($title === static::TEST_GET_LIST)
-		{
+		if($title === static::TEST_GET_LIST) {
 			return $list;
 		}
 		return static::recordBenchmark($list, $title);
@@ -47,8 +45,7 @@ class TestCase extends \PHPUnit_Framework_TestCase
 
 	protected function assertParse($from, $to, $message = null)
 	{
-		if(is_null($message))
-		{
+		if(is_null($message)) {
 			$message = "sbp::parse(\"$from\") do not return \"$to\"";
 		}
 		$explode = explode("\n", $parsed = sbp::parse("<?\n".$from), 2);
@@ -73,31 +70,21 @@ class TestCase extends \PHPUnit_Framework_TestCase
 		$from = $cleaner($from);
 		$lastDiffKey = -2 * static::WRAP_LINES;
 		$lastPrintedKey = $lastDiffKey;
-		if($from !== $to)
-		{
+		if($from !== $to) {
 			echo "\n=====================================\n- $toPath (parsed)\n+ $fromPath\n";
-			foreach(array('in', 'out') as $var)
-			{
+			foreach(array('in', 'out') as $var) {
 				$$var = preg_split('#\r\n|\r|\n#', preg_replace('#(\n[\t ]*)(\n[\t ]*)}([\t ]*)(?=\S)#', '$1}$2$3', $$var));
 			}
-			foreach($in as $key => $line)
-			{
-				if($cleaner($line) === $cleaner(isset($out[$key]) ? $out[$key] : ''))
-				{
-					if($key - $lastDiffKey === static::WRAP_LINES)
-					{
+			foreach($in as $key => $line) {
+				if($cleaner($line) === $cleaner(isset($out[$key]) ? $out[$key] : '')) {
+					if($key - $lastDiffKey === static::WRAP_LINES) {
 						echo " [...]\n";
-					}
-					elseif($key - $lastDiffKey < static::WRAP_LINES && $key)
-					{
+					} elseif($key - $lastDiffKey < static::WRAP_LINES && $key) {
 						echo " ".str_replace("\t", '    ', $line)."\n";
 						$lastPrintedKey = $key;
 					}
-				}
-				else
-				{
-					for($i = max(0, $lastPrintedKey + 1, $key - static::WRAP_LINES); $i < $key; $i++)
-					{
+				} else {
+					for($i = max(0, $lastPrintedKey + 1, $key - static::WRAP_LINES); $i < $key; $i++) {
 						echo " ".str_replace("\t", '    ', $in[$i])."\n";
 					}
 					echo "-".str_replace("\t", '    ', $line)."\n";
@@ -112,12 +99,10 @@ class TestCase extends \PHPUnit_Framework_TestCase
 
 	protected function assertParseFile($from, $message = null, $keepMessage = null)
 	{
-		if(is_null($message))
-		{
+		if(is_null($message)) {
 			$message = "sbp::fileParse(\"$from\") do match the compiled file";
 		}
-		if(is_null($keepMessage))
-		{
+		if(is_null($keepMessage)) {
 			$keepMessage = "Normal PHP in compiled \"$from\" must be keeped intact if reparsed";
 		}
 		$to = preg_replace('#^(.+)(/[^/]+)$#', '$1/.src$2', $from);

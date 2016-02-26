@@ -76,6 +76,7 @@ class Sbp
         $len = max(0, min(2, max(array_map(function ($key)
         {
             $key = explode('.', $key);
+
             return strlen(end($key)) - 3;
         }, $times))));
         $list[strval(microtime(true))] = "End benchmark";
@@ -84,6 +85,7 @@ class Sbp
             $ul .= '<li>' . (is_null($previous) ? '' : '<b>' . number_format(($time - $previous) * 1000, $len) . 'ms</b>') . $title . '</li>';
             $previous = $time;
         }
+
         return '<!doctype html>
             <html lang="en">
                 <head>
@@ -136,6 +138,7 @@ class Sbp
     public static function benchmark($title = '')
     {
         static $list = null;
+
         return static::recordBenchmark($list, $title);
     }
 
@@ -183,8 +186,7 @@ class Sbp
         || in_array($class, array_merge(
             array('else', 'try', 'default:', 'echo', 'print', 'exit', 'continue', 'break', 'return', 'do'),
             explode('|', static::PHP_WORDS)
-        )))
-        {
+        ))) {
             return $all;
         }
         $className = preg_replace('#^(?:'.static::ABSTRACT_SHORTCUTS.')\s+#', '', $class, -1, $isAbstract);
@@ -192,6 +194,7 @@ class Sbp
             (empty($extend) ? '' : ' extends '.trim($extend)).
             (empty($implement) ? '' : ' implements '.trim($implement)).
             ' '.trim($end);
+
         return $codeLine.str_repeat("\n", substr_count($all, "\n") - substr_count($codeLine, "\n"));
     }
 
@@ -212,6 +215,7 @@ class Sbp
                 }
             }
         }
+
         return $pos;
     }
 
@@ -247,8 +251,10 @@ class Sbp
             $content = substr($content, 1);
             $find = static::findLastBlock($content);
             $pos = $find ?: 0;
+
             return $find !== false && !preg_match('#(?<!->)\s*\{#U', substr($content, $pos));
         }
+
         return $find !== false && !preg_match('#(?<!->)\s*\{#U', substr($line, $pos));
     }
 
@@ -272,6 +278,7 @@ class Sbp
         $GLOBALS['sbpContentTab'] = $content;
         $container = preg_replace_callback('#(\t*){content}#', array(get_class(), 'contentTab'), $container);
         unset($GLOBALS['sbpContentTab']);
+
         return str_replace(array_keys($replace), array_values($replace), $container);
     }
 
@@ -281,6 +288,7 @@ class Sbp
         $content=static::parse($content);
         $content=explode('/*sbp-container-end*/', $content, 2);
         $content[0]=strtr($content[0],"\r\n","  ");
+
         return implode('',$content);
     }
 
@@ -298,12 +306,14 @@ class Sbp
         } else {
             $GLOBALS['quotedStrings'][] = $id;
         }
+
         return static::COMP.static::SUBST.$id.static::SUBST.static::COMP;
     }
 
     protected static function stringRegex()
     {
         $antislash = preg_quote('\\');
+
         return '([\'"]).*(?<!'.$antislash.')(?:'.$antislash.$antislash.')*\\1';
     }
 
@@ -312,6 +322,7 @@ class Sbp
         if ($motif === '(?:)') {
             $motif = '(?:[^\S\s])';
         }
+
         return preg_quote(static::COMP.static::SUBST).$motif.preg_quote(static::SUBST.static::COMP);
     }
 
@@ -323,6 +334,7 @@ class Sbp
         if (filegroup($file) === getmygid()) {
             return 'g';
         }
+
         return 'o';
     }
 
@@ -333,15 +345,18 @@ class Sbp
         }
         if (!is_readable($from)) {
             throw new SbpException($from." is not readable, try :\nchmod ".static::fileMatchnigLetter($from)."+r ".$from, 1);
+
             return false;
         }
         if (!is_writable($dir = dirname($to))) {
             throw new SbpException($dir." is not writable, try :\nchmod ".static::fileMatchnigLetter($dir)."+w ".$dir, 1);
+
             return false;
         }
         static::$lastParsedFile = $from;
         $writed = file_put_contents($to, static::parse(file_get_contents($from)));
         static::$lastParsedFile = null;
+
         return $writed;
     }
 
@@ -351,6 +366,7 @@ class Sbp
             'sha1' :
             static::$callbackWriteIn
         );
+
         return (static::$destination === static::SAME_DIR ?
             $file.'.php' :
             static::$destination.$callback($file).'.php'
@@ -369,14 +385,17 @@ class Sbp
         if (!file_exists($phpFile)) {
             if (file_exists($sbpFile)) {
                 static::fileParse($sbpFile, $phpFile);
+
                 return true;
             }
         } else {
             if (file_exists($sbpFile) && filemtime($sbpFile) > filemtime($phpFile)) {
                 static::fileParse($sbpFile, $phpFile);
             }
+
             return true;
         }
+
         return false;
     }
 
@@ -394,8 +413,10 @@ class Sbp
         }
         if (!static::fileExists($file, $phpFile)) {
             throw new SbpException($file." not found", 1);
+
             return false;
         }
+
         return include($phpFile);
     }
 
@@ -406,8 +427,10 @@ class Sbp
         }
         if (!static::fileExists($file, $phpFile)) {
             throw new SbpException($file." not found", 1);
+
             return false;
         }
+
         return include_once($phpFile);
     }
 
@@ -431,6 +454,7 @@ class Sbp
                 throw new SbpException('ERREUR PREG '.preg_last_error()." in:\n".$search, 1);
             }
         }
+
         return $content;
     }
 
@@ -446,6 +470,7 @@ class Sbp
         foreach ($GLOBALS['replaceStrings'] as $id => $string) {
             $content = str_replace(static::COMP.static::SUBST.$id.static::SUBST.static::COMP, $string, $content);
         }
+
         return $content;
     }
 
@@ -457,6 +482,7 @@ class Sbp
     protected static function replaceSuperMethods($content)
     {
         $method =  explode('::', __METHOD__);
+
         return preg_replace_callback(
             '#('.static::$validExpressionRegex.'|'.static::VALIDVAR.')-->#',
             function ($match) use($method)
@@ -477,6 +503,7 @@ class Sbp
                     : static::replace($content, (array) $replace)
                 );
         }
+
         return $content;
     }
 
@@ -536,6 +563,7 @@ class Sbp
                 => function ($match)
                 {
                     list($all, $spaces, $before, $after) = $match;
+
                     return $spaces . '>assertFalse(' .
                         $before .
                         preg_replace('#
@@ -551,6 +579,7 @@ class Sbp
                 => function ($match)
                 {
                     list($all, $spaces, $before, $after) = $match;
+
                     return $spaces . '>assertTrue(' .
                         $before .
                         preg_replace('#
@@ -908,6 +937,7 @@ class Sbp
                     }
                 }
             }
+
             return $content;
         };
         $aloneCustomOperator = implode('|', array_map(
@@ -946,6 +976,7 @@ class Sbp
                         list($all, $keyWord, $right) = $match;
                         $id = count($values);
                         $values[$id] = $restoreValues('('.$right.')');
+
                         return ' __sbp_'.$keyWord.static::SUBST.static::VALUE.$id.static::VALUE.static::SUBST;
                     },
 
@@ -955,6 +986,7 @@ class Sbp
                         list($all, $left, $keyWord, $right) = $match;
                         $id = count($values);
                         $values[$id] = $restoreValues('('.$left.', '.$right.')');
+
                         return ' __sbp_'.$keyWord.static::SUBST.static::VALUE.$id.static::VALUE.static::SUBST;
                     },
             )));
@@ -963,6 +995,7 @@ class Sbp
         {
             $id = count($values);
             $values[$id] = $restoreValues($filters($match[0]));
+
             return static::SUBST.static::VALUE.$id.static::VALUE.static::SUBST;
         };
         while (($content = preg_replace_callback('#[\(\[][^\(\)\[\]]*[\)\]]#', $substituteValues, $content, -1, $count)) && $count > 0);
@@ -1028,6 +1061,7 @@ class Sbp
                 => '$1',
 
         ));
+
         return $content;
     }
 }
