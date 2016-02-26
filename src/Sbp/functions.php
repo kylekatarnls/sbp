@@ -17,6 +17,7 @@
 function sbp_include($file, $once = false)
 {
     $method = $once ? 'includeOnceFile' : 'includeFile';
+
     return Sbp\Sbp::$method($file);
 }
 
@@ -54,7 +55,7 @@ function sbp_include_if_exists($file, $once = false)
 {
     try {
         return sbp_include($file, $once);
-    } catch(Sbp\SbpException $e) {
+    } catch (Sbp\SbpException $e) {
         return false;
     }
 }

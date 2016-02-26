@@ -40,7 +40,7 @@ class Sbp
 
     public static function prod($on = true)
     {
-        static::$prod = !!$on;
+        static::$prod = (bool) $on;
     }
 
     public static function dev($off = true)
@@ -73,16 +73,15 @@ class Sbp
     {
         $previous = null;
         $times = array_keys($list);
-        $len = max(0, min(2, max(array_map(function ($key)
-        {
+        $len = max(0, min(2, max(array_map(function ($key) {
             $key = explode('.', $key);
 
             return strlen(end($key)) - 3;
         }, $times))));
-        $list[strval(microtime(true))] = "End benchmark";
+        $list[strval(microtime(true))] = 'End benchmark';
         $ul = '';
         foreach ($list as $time => $title) {
-            $ul .= '<li>' . (is_null($previous) ? '' : '<b>' . number_format(($time - $previous) * 1000, $len) . 'ms</b>') . $title . '</li>';
+            $ul .= '<li>'.(is_null($previous) ? '' : '<b>'.number_format(($time - $previous) * 1000, $len).'ms</b>').$title.'</li>';
             $previous = $time;
         }
 
@@ -112,10 +111,10 @@ class Sbp
                 </head>
                 <body>
                     <h1>Benckmark</h1>
-                    <ul>' . $ul . '</ul>
-                    <p>All: <b>' . number_format((end($times) - reset($times)) * 1000, $len, ',', ' ') . 'ms</b></p>
+                    <ul>'.$ul.'</ul>
+                    <p>All: <b>'.number_format((end($times) - reset($times)) * 1000, $len, ',', ' ').'ms</b></p>
                     <h1>Code source</h1>
-                    <pre>' . htmlspecialchars(ob_get_clean()) . '</pre>
+                    <pre>'.htmlspecialchars(ob_get_clean()).'</pre>
                 </body>
             </html>';
     }
@@ -124,7 +123,7 @@ class Sbp
     {
         $time = strval(microtime(true));
         if (empty($title)) {
-            $list = array($time => "Start benchmark");
+            $list = array($time => 'Start benchmark');
             ob_start();
         } elseif (is_array($list)) {
             if ($title === static::BENCHMARK_END) {
@@ -150,17 +149,17 @@ class Sbp
         if ($directory !== static::SAME_DIR) {
             $directory = rtrim($directory, '/\\');
             if (!file_exists($directory)) {
-                throw new SbpException($directory . " : path not found");
+                throw new SbpException($directory.' : path not found');
             }
             if (!is_writable($directory)) {
-                throw new SbpException($directory . " : persmission denied");
+                throw new SbpException($directory.' : persmission denied');
             }
             $directory .= DIRECTORY_SEPARATOR;
         }
         static::$destination = $directory;
         if (!is_null($callback)) {
             if (!is_callable($callback)) {
-                throw new SbpException("Invalid callback");
+                throw new SbpException('Invalid callback');
             }
             static::$callbackWriteIn = $callback;
         }
@@ -168,14 +167,13 @@ class Sbp
 
     public static function isSbp($file)
     {
-        return (
+        return
             strpos($file, $k = ' '.static::COMMENT) !== false ||
             (
                 substr($file, 0, 1) === '/' &&
                 @file_exists($file) &&
                 strpos(file_get_contents($file), $k) !== false
-            )
-        );
+            );
     }
 
     public static function parseClass($match)
@@ -198,7 +196,7 @@ class Sbp
         return $codeLine.str_repeat("\n", substr_count($all, "\n") - substr_count($codeLine, "\n"));
     }
 
-    static private function findLastBlock(&$line, $block = array())
+    private static function findLastBlock(&$line, $block = array())
     {
         $pos = false;
         if (empty($block)) {
@@ -273,7 +271,7 @@ class Sbp
             '{basename}' => $basename,
             '{name}' => $name,
             '{camelCase}' => $camelCase,
-            '{CamelCase}' => ucfirst($camelCase)
+            '{CamelCase}' => ucfirst($camelCase),
         );
         $GLOBALS['sbpContentTab'] = $content;
         $container = preg_replace_callback('#(\t*){content}#', array(get_class(), 'contentTab'), $container);
@@ -344,12 +342,12 @@ class Sbp
             $to = $from;
         }
         if (!is_readable($from)) {
-            throw new SbpException($from." is not readable, try :\nchmod ".static::fileMatchnigLetter($from)."+r ".$from, 1);
+            throw new SbpException($from.' is not readable, try :\nchmod '.static::fileMatchnigLetter($from).'+r '.$from, 1);
 
             return false;
         }
         if (!is_writable($dir = dirname($to))) {
-            throw new SbpException($dir." is not writable, try :\nchmod ".static::fileMatchnigLetter($dir)."+w ".$dir, 1);
+            throw new SbpException($dir.' is not writable, try :\nchmod '.static::fileMatchnigLetter($dir).'+w '.$dir, 1);
 
             return false;
         }
@@ -367,10 +365,9 @@ class Sbp
             static::$callbackWriteIn
         );
 
-        return (static::$destination === static::SAME_DIR ?
-            $file.'.php' :
-            static::$destination.$callback($file).'.php'
-        );
+        return static::$destination === static::SAME_DIR
+            ? $file.'.php'
+            : static::$destination.$callback($file).'.php';
     }
 
     public static function fileExists($file, &$phpFile = null)
@@ -409,15 +406,15 @@ class Sbp
     public static function includeFile($file)
     {
         if (static::$prod) {
-            return include(static::phpFile(preg_replace('#(\.sbp)?(\.php)?$#', '', $file)));
+            return include static::phpFile(preg_replace('#(\.sbp)?(\.php)?$#', '', $file));
         }
         if (!static::fileExists($file, $phpFile)) {
-            throw new SbpException($file." not found", 1);
+            throw new SbpException($file.' not found', 1);
 
             return false;
         }
 
-        return include($phpFile);
+        return include $phpFile;
     }
 
     public static function includeOnceFile($file)
@@ -426,12 +423,12 @@ class Sbp
             return include_once(static::phpFile(preg_replace('#(\.sbp)?(\.php)?$#', '', $file)));
         }
         if (!static::fileExists($file, $phpFile)) {
-            throw new SbpException($file." not found", 1);
+            throw new SbpException($file.' not found', 1);
 
             return false;
         }
 
-        return include_once($phpFile);
+        return include_once $phpFile;
     }
 
     protected static function replace($content, $replace)
@@ -446,7 +443,7 @@ class Sbp
                         str_replace($search, $replace, $content)
                     )
                 );
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 $catched = true;
                 throw new SbpException('ERREUR PREG : \''.$e->getMessage()."' in:\n".$search, 1);
             }
@@ -460,8 +457,8 @@ class Sbp
 
     public static function arrayShortSyntax($match)
     {
-        return 'array(' .
-            preg_replace('#,(\s*)$#', '$1', preg_replace('#^([\t ]*)('.static::VALIDNAME.')([\t ]*=)(.*[^,]),?(?=[\r\n]|$)#mU', '$1 \'$2\'$3>$4,', $match[1])) .
+        return 'array('.
+            preg_replace('#,(\s*)$#', '$1', preg_replace('#^([\t ]*)('.static::VALIDNAME.')([\t ]*=)(.*[^,]),?(?=[\r\n]|$)#mU', '$1 \'$2\'$3>$4,', $match[1])).
         ')';
     }
 
@@ -481,19 +478,18 @@ class Sbp
 
     protected static function replaceSuperMethods($content)
     {
-        $method =  explode('::', __METHOD__);
+        $method = explode('::', __METHOD__);
 
         return preg_replace_callback(
             '#('.static::$validExpressionRegex.'|'.static::VALIDVAR.')-->#',
-            function ($match) use($method)
-            {
-                return '(new \\Sbp\\Handler(' . call_user_func($method, $match[1]) . '))->';
+            function ($match) use($method) {
+                return '(new \\Sbp\\Handler('.call_user_func($method, $match[1]).'))->';
             },
             $content
         );
     }
 
-    static private function loadPlugins($content)
+    private static function loadPlugins($content)
     {
         foreach (static::$plugins as $replace) {
             $content = is_array($replace)
