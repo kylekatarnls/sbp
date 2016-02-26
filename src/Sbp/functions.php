@@ -82,11 +82,15 @@ function sbp_benchmark_end()
  * Add a plug-in (custom rules) to SBP.
  *
  * @param string                plugin, name of the new rule or set of rules.
- * @param string|array|function from, if it's
+ *                              if from is not specified, the plugin name will be used as
+ *                              a class name and static methods and properties will be
+ *                              loaded from it.
+ * @param string|array|function from, if it's a string, to must be specified, else it must not.
+ * @param string|function       to, replacement string or callback.
  *
  * @throws \Sbp\SbpException if the to is specified but from is not a string.
  */
-function sbp_add_plugin($plugin, $from, $to = null)
+function sbp_add_plugin($plugin, $from = null, $to = null)
 {
     Sbp\Sbp::addPlugin($plugin, $from, $to);
 }

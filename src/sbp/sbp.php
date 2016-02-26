@@ -37,6 +37,22 @@ class Sbp
     protected static $lastParsedFile = null;
     protected static $plugins = array();
     protected static $validExpressionRegex = null;
+    protected static $coreLoaded = false;
+
+    public static function getLastParsedFile()
+    {
+        return static::$lastParsedFile;
+    }
+
+    public static function getValidStringSurrogates()
+    {
+        return static::validSubst('(?:'.implode('|', $GLOBALS['quotedStrings']).')');
+    }
+
+    public static function getValidComments()
+    {
+        return static::validSubst('(?:'.implode('|', $GLOBALS['commentStrings']).')');
+    }
 
     public static function prod($on = true)
     {
@@ -48,8 +64,37 @@ class Sbp
         static::$prod = !$off;
     }
 
-    public static function addPlugin($plugin, $from, $to = null)
+    public static function addPlugin($plugin, $from = null, $to = null)
     {
+        if (is_null($from)) {
+            if (!class_exists($plugin)) {
+                throw new SbpException('Invalid arguments, if the second argument is not specified, the plugin name must match a existing class and the class '.$plugin.' was not found.');
+            }
+            $methods = get_class_methods($plugin);
+            foreach ($methods as $method) {
+                if (substr($method, 0, 2) !== '__') {
+                    $method = $plugin.'::'.$method;
+                    if (is_callable($method)) {
+                        static::$plugins[$method] = $method;
+                    }
+                }
+            }
+            $vars = get_class_vars($plugin);
+            foreach ($vars as $var => $value) {
+                if (is_array($value)) {
+                    if (count($value) === 2 && key($value) === 0) {
+                        $value = array($value[0] => $value[1]);
+                    }
+                    foreach ($value as &$to) {
+                        if (is_string($to) && substr($to, 0, 4) === '::__') {
+                            $to = $plugin.substr($to, 2);
+                        }
+                    }
+                    static::$plugins[$plugin.'::$'.$var] = $value;
+                }
+            }
+            return;
+        }
         if (!is_null($to)) {
             if (is_array($from) || is_object($from)) {
                 throw new SbpException('Invalid arguments, if the second argument is an array or an object, do not specified a third argument.');
@@ -176,26 +221,6 @@ class Sbp
             );
     }
 
-    public static function parseClass($match)
-    {
-        list($all, $start, $class, $extend, $implement, $end) = $match;
-        $class = trim($class);
-        if (in_array(substr($all, 0, 1), str_split(',(+-/*&|'))
-        || in_array($class, array_merge(
-            array('else', 'try', 'default:', 'echo', 'print', 'exit', 'continue', 'break', 'return', 'do'),
-            explode('|', static::PHP_WORDS)
-        ))) {
-            return $all;
-        }
-        $className = preg_replace('#^(?:'.static::ABSTRACT_SHORTCUTS.')\s+#', '', $class, -1, $isAbstract);
-        $codeLine = $start.($isAbstract ? 'abstract ' : '').'class '.$className.
-            (empty($extend) ? '' : ' extends '.trim($extend)).
-            (empty($implement) ? '' : ' implements '.trim($implement)).
-            ' '.trim($end);
-
-        return $codeLine.str_repeat("\n", substr_count($all, "\n") - substr_count($codeLine, "\n"));
-    }
-
     private static function findLastBlock(&$line, $block = array())
     {
         $pos = false;
@@ -282,12 +307,12 @@ class Sbp
 
     public static function parseWithContainer($container, $file, $content, $basename = null, $name = null)
     {
-        $content=static::container($container,$file,'/*sbp-container-end*/'.$content,$fin);
-        $content=static::parse($content);
-        $content=explode('/*sbp-container-end*/', $content, 2);
-        $content[0]=strtr($content[0],"\r\n","  ");
+        $content = static::container($container, $file, '/*sbp-container-end*/'.$content, $fin);
+        $content = static::parse($content);
+        $content = explode('/*sbp-container-end*/', $content, 2);
+        $content[0] = strtr($content[0], "\r\n", "  ");
 
-        return implode('',$content);
+        return implode('', $content);
     }
 
     public static function replaceString($match)
@@ -308,13 +333,6 @@ class Sbp
         return static::COMP.static::SUBST.$id.static::SUBST.static::COMP;
     }
 
-    protected static function stringRegex()
-    {
-        $antislash = preg_quote('\\');
-
-        return '([\'"]).*(?<!'.$antislash.')(?:'.$antislash.$antislash.')*\\1';
-    }
-
     protected static function validSubst($motif = '[0-9]+')
     {
         if ($motif === '(?:)') {
@@ -322,6 +340,13 @@ class Sbp
         }
 
         return preg_quote(static::COMP.static::SUBST).$motif.preg_quote(static::SUBST.static::COMP);
+    }
+
+    public static function stringRegex()
+    {
+        $antislash = preg_quote('\\');
+
+        return '([\'"]).*(?<!'.$antislash.')(?:'.$antislash.$antislash.')*\\1';
     }
 
     public static function fileMatchnigLetter($file)
@@ -420,7 +445,7 @@ class Sbp
     public static function includeOnceFile($file)
     {
         if (static::$prod) {
-            return include_once(static::phpFile(preg_replace('#(\.sbp)?(\.php)?$#', '', $file)));
+            return include_once static::phpFile(preg_replace('#(\.sbp)?(\.php)?$#', '', $file));
         }
         if (!static::fileExists($file, $phpFile)) {
             throw new SbpException($file.' not found', 1);
@@ -433,11 +458,19 @@ class Sbp
 
     protected static function replace($content, $replace)
     {
+        if (is_array($replace) && count($replace) === 2 && key($replace) === 0) {
+            $replace = array($replace[0] => $replace[1]);
+        }
+
         foreach ($replace as $search => $replace) {
             $catched = false;
             try {
                 $content = (is_callable($replace) ?
-                    preg_replace_callback($search, $replace, $content) :
+                    preg_replace_callback($search, function ($matches) use ($replace) {
+                        $result = $replace($matches, __CLASS__);
+
+                        return is_array($result) ? static::replace($content, $result) : $result;
+                    }, $content) :
                     (substr($search, 0, 1) === '#' ?
                         preg_replace($search, $replace, $content) :
                         str_replace($search, $replace, $content)
@@ -445,10 +478,10 @@ class Sbp
                 );
             } catch (\Exception $e) {
                 $catched = true;
-                throw new SbpException('ERREUR PREG : \''.$e->getMessage()."' in:\n".$search, 1);
+                throw new SbpException('Replacement error: \''.$e->getMessage()."' in:\n".$search."\nwith:\n".var_export($replace, true), 1, $e);
             }
             if (!$catched && preg_last_error()) {
-                throw new SbpException('ERREUR PREG '.preg_last_error()." in:\n".$search, 1);
+                throw new SbpException('PREG REGEX ERROR: '.preg_last_error()." in:\n".$search."\nwith:\n".var_export($replace, true), 1);
             }
         }
 
@@ -482,7 +515,7 @@ class Sbp
 
         return preg_replace_callback(
             '#('.static::$validExpressionRegex.'|'.static::VALIDVAR.')-->#',
-            function ($match) use($method) {
+            function ($match) use ($method) {
                 return '(new \\Sbp\\Handler('.call_user_func($method, $match[1]).'))->';
             },
             $content
@@ -492,12 +525,13 @@ class Sbp
     private static function loadPlugins($content)
     {
         foreach (static::$plugins as $replace) {
-            $content = is_array($replace)
+            $pluginResult = is_array($replace)
                 ? static::replace($content, $replace)
                 : (is_callable($replace) || is_string($replace)
-                    ? $replace($content)
+                    ? $replace($content, __CLASS__)
                     : static::replace($content, (array) $replace)
                 );
+            $content = is_array($pluginResult) ? static::replace($content, $pluginResult) : $pluginResult;
         }
 
         return $content;
@@ -510,355 +544,26 @@ class Sbp
         $GLOBALS['quotedStrings'] = array();
         $GLOBALS['commentStrings'] = array();
 
+        if (!static::$coreLoaded) {
+            static::addPlugin('Sbp\Plugins\Core\PhpOpenerTag');
+            static::addPlugin('Sbp\Plugins\Core\ReplaceStrings');
+            static::addPlugin('Sbp\Plugins\Core\PHPUnit');
+            static::addPlugin('Sbp\Plugins\Core\Constants');
+            static::addPlugin('Sbp\Plugins\Core\ClassName');
+            static::addPlugin('Sbp\Plugins\Core\Functions');
+            static::addPlugin('Sbp\Plugins\Core\This');
+            static::addPlugin('Sbp\Plugins\Core\Attributes');
+            static::addPlugin('Sbp\Plugins\Core\Methods');
+            static::addPlugin('Sbp\Plugins\Core\SwitchShortCuts');
+            static::addPlugin('Sbp\Plugins\Core\Summons');
+            static::addPlugin('Sbp\Plugins\Core\Comparisons');
+            static::addPlugin('Sbp\Plugins\Core\ArrayShortSyntax');
+            static::addPlugin('Sbp\Plugins\Core\Chainer');
+            static::$coreLoaded = true;
+        }
+
         $content = static::loadPlugins($content);
 
-        $content = static::replace(
-
-            /*****************************************/
-            /* Mark the compiled file with a comment */
-            /*****************************************/
-            '<?php '.static::COMMENT.(is_null(static::$lastParsedFile) ? '' : '/*:'.static::$lastParsedFile.':*/').' ?>'.
-            $content, array(
-
-
-            /***************************/
-            /* Complete PHP shrot-tags */
-            /***************************/
-            '#<\?(?!php)#'
-                => '<?php',
-
-
-            /***************************/
-            /* Remove useless PHP tags */
-            /***************************/
-            '#\?><\?php#'
-                => '',
-
-
-            /*******************************/
-            /* Escape the escape-character */
-            /*******************************/
-            static::SUBST
-                => static::SUBST.static::SUBST,
-
-
-            /*************************************************************/
-            /* Save the comments, quoted string and HTML out of PHP tags */
-            /*************************************************************/
-            '#'.static::COMMENTS.'|'.static::stringRegex().'|\?>.+<\?php#sU'
-                => array(get_class(), 'replaceString'),
-
-
-            /*************************************/
-            /* should key-word fo PHPUnit assert */
-            /*************************************/
-            '#(?<=\s|^)should\s+not(?=\s)$#mU'
-                => 'should not',
-
-            '#^(\s*)(\S.*\s)?should\snot\s(.*[^;]);*\s*$#mU'
-                => function ($match)
-                {
-                    list($all, $spaces, $before, $after) = $match;
-
-                    return $spaces . '>assertFalse(' .
-                        $before .
-                        preg_replace('#
-                            (?<![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$])
-                            (?:be|return)
-                            (?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])
-                        #x', 'is', $after) . ', ' .
-                        static::includeString($all) .
-                    ');';
-                },
-
-            '#^(\s*)(\S.*\s)?should(?!\snot)\s(.*[^;]);*\s*$#mU'
-                => function ($match)
-                {
-                    list($all, $spaces, $before, $after) = $match;
-
-                    return $spaces . '>assertTrue(' .
-                        $before .
-                        preg_replace('#
-                            (?<![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$])
-                            (?:be|return)
-                            (?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])
-                        #x', 'is', $after) . ', ' .
-                        static::includeString($all) .
-                    ');';
-                },
-        ));
-
-        $validSubst = static::validSubst('(?:'.implode('|', $GLOBALS['quotedStrings']).')');
-        $validComments = static::validSubst('(?:'.implode('|', $GLOBALS['commentStrings']).')');
-
-        $__file = is_null(static::$lastParsedFile) ? null : realpath(static::$lastParsedFile);
-        if ($__file === false) {
-            $__file = static::$lastParsedFile;
-        }
-        $__dir = is_null($__file) ? null : dirname($__file);
-        $__file = static::includeString($__file);
-        $__dir = static::includeString($__dir);
-        $__server = array(
-            'QUERY_STRING',
-            'AUTH_USER',
-            'AUTH_PW',
-            'PATH_INFO',
-            'REQUEST_METHOD',
-            'USER_AGENT' => 'HTTP_USER_AGENT',
-            'REFERER' => 'HTTP_REFERER',
-            'HOST' => 'HTTP_HOST',
-            'URI' => 'REQUEST_URI',
-            'IP' => 'REMOTE_ADDR',
-        );
-        foreach ($__server as $key => $value) {
-            if (is_int($key)) {
-                $key = $value;
-            }
-            $content = preg_replace(
-                '#(?<![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$]|::|->)__' . preg_quote($key) . '(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])#',
-                '$_SERVER['.static::includeString($value).']',
-                $content
-            );
-        }
-
-        $content = static::replace($content, array(
-
-            /*********/
-            /* Class */
-            /*********/
-            '#
-            (
-                (?:^|\S\s*)
-                \n[\t ]*
-            )
-            (
-                (?:
-                    (?:'.static::ABSTRACT_SHORTCUTS.')
-                    \s+
-                )?
-                \\\\?
-                (?:'.static::VALIDNAME.'\\\\)*
-                '.static::VALIDNAME.'
-            )
-            (?:
-                (?::|\s+:\s+|\s+extends\s+)
-                (
-                    \\\\?
-                    '.static::VALIDNAME.'
-                    (?:\\\\'.static::VALIDNAME.')*
-                )
-            )?
-            (?:
-                (?:<<<|\s+<<<\s+|\s+implements\s+)
-                (
-                    \\\\?
-                    '.static::VALIDNAME.'
-                    (?:\\\\'.static::VALIDNAME.')*
-                    (?:
-                        \s*,\s*
-                        \\\\?
-                        '.static::VALIDNAME.'
-                        (?:\\\\'.static::VALIDNAME.')*
-                    )*
-                )
-            )?
-            (
-                \s*
-                (?:{(?:.*})?)?
-                \s*\n
-            )
-            #xi'
-                => array(get_class(), 'parseClass'),
-
-
-            /************************/
-            /* Constantes spéciales */
-            /************************/
-            '#(?<![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$]|::|->)__FILE(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])#'
-                => $__file,
-
-            '#(?<![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff$]|::|->)__DIR(?![a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff])#'
-                => $__dir,
-
-
-            /*************/
-            /* Constants */
-            /*************/
-            '#'.static::START.'('.static::CONSTNAME.')\s*=#'
-                => '$1const $2 =',
-
-            '#\#('.static::CONSTNAME.')\s*=([^;]+);#'
-                => 'define("$1",$2);',
-
-            '#([\(;\s\.+/*=])~:('.static::CONSTNAME.')#'
-                => '$1static::$2',
-
-            '#([\(;\s\.+/*=]):('.static::CONSTNAME.')#'
-                => '$1static::$2',
-
-
-            /*************/
-            /* Functions */
-            /*************/
-            '#'.static::START.'<(?![\?=])#'
-                => '$1return ',
-
-            '#'.static::START.'@f[\t ]+('.static::VALIDNAME.')#'
-                => '$1if-defined-function $2',
-
-            '#'.static::START.'f[\t ]+('.static::VALIDNAME.')#'
-                => '$1function $2',
-
-            '#(?<![a-zA-Z0-9_])f°[\t ]*\(#'
-                => 'function(',
-
-            '#(?<![a-zA-Z0-9_])f°([\t ]*(?:\n|\r|$))#'
-                => 'function ()$1',
-
-            '#(?<![a-zA-Z0-9_])f°([\t ]*(?:\$|use|\{|\n|$))#'
-                => 'function$1',
-
-
-            /****************/
-            /* > to $this-> */
-            /****************/
-            '#([\(;\s\.+/*:+\/\*\?\&\|\!\^\~\[\{]\s*|return(?:\(\s*|\s+)|[=-]\s+)>(\$?'.static::VALIDNAME.')#'
-                => '$1$this->$2',
-
-
-            /**************/
-            /* Attributes */
-            /**************/
-            '#'.static::START.'-\s*(('.$validComments.'\s*)*\$'.static::VALIDNAME.')#U'
-                => '$1private $2',
-
-            '#'.static::START.'\+\s*(('.$validComments.'\s*)*\$'.static::VALIDNAME.')#U'
-                => '$1public $2',
-
-            '#'.static::START.'\*\s*(('.$validComments.'\s*)*\$'.static::VALIDNAME.')#U'
-                => '$1protected $2',
-
-            '#'.static::START.'s-\s*(('.$validComments.'\s*)*\$'.static::VALIDNAME.')#U'
-                => '$1static private $2',
-
-            '#'.static::START.'s\+\s*(('.$validComments.'\s*)*\$'.static::VALIDNAME.')#U'
-                => '$1public static $2',
-
-            '#'.static::START.'s\*\s*(('.$validComments.'\s*)*\$'.static::VALIDNAME.')#U'
-                => '$1protected static $2',
-
-
-            /***********/
-            /* Methods */
-            /***********/
-            '#'.static::START.'\*[\t ]*(('.$validComments.'[\t ]*)*'.static::VALIDNAME.')#U'
-                => '$1protected function $2',
-
-            '#'.static::START.'-[\t ]*(('.$validComments.'[\t ]*)*'.static::VALIDNAME.')#U'
-                => '$1private function $2',
-
-            '#'.static::START.'\+[\t ]*(('.$validComments.'[\t ]*)*'.static::VALIDNAME.')#U'
-                => '$1public function $2',
-
-            '#'.static::START.'s\*[\t ]*(('.$validComments.'[\t ]*)*'.static::VALIDNAME.')#U'
-                => '$1protected static function $2',
-
-            '#'.static::START.'s-[\t ]*(('.$validComments.'[\t ]*)*'.static::VALIDNAME.')#U'
-                => '$1static private function $2',
-
-            '#'.static::START.'s\+[\t ]*(('.$validComments.'[\t ]*)*'.static::VALIDNAME.')#U'
-                => '$1public static function $2',
-
-
-            /**********/
-            /* Switch */
-            /**********/
-            '#(\n\s*(?:'.$validComments.'\s*)*)(\S.*)\s+\:=#U'
-                => "$1switch($2)",
-
-            '#(\n\s*(?:'.$validComments.'\s*)*)(\S.*)\s+\:\:#U'
-                => "$1case $2:",
-
-            '#(\n\s*(?:'.$validComments.'\s*)*)d\:#'
-                => "$1default:",
-
-            ':;'
-                => "break;",
-
-
-            /***********/
-            /* Summons */
-            /***********/
-            '#(\$.*\S)\s*\*\*=\s*('.static::VALIDNAME.')\s*\(\s*\)#U'
-                => "$1 = $2($1)",
-
-            '#(\$.*\S)\s*\*\*=\s*('.static::VALIDNAME.')\s*\(#U'
-                => "$1 = $2($1, ",
-
-            '#([\(;\s\.+/*=\r\n]\s*)('.static::VALIDNAME.')\s*\(\s*\*\*\s*(\$[^\),]+)#'
-                => "$1$3 = $2($3",
-
-            '#(\$.*\S)\s*\(\s*('.static::OPERATORS.')=\s*(\S)#U'
-                => "$1 = ($1 $2 $3",
-
-            '#(\$.*\S)\s*('.static::OPERATORS.')=\s*(\S)#U'
-                => "$1 = $1 $2 $3",
-
-            '#('.static::VALIDVAR.')\s*\!\?==\s*(\S[^;\n\r]*);#U'
-                => "if (!isset($1)) { $1 = $4; }",
-
-            '#('.static::VALIDVAR.')\s*\!\?==\s*(\S[^;\n\r]*)(?=[;\n\r]|\$)#U'
-                => "if (!isset($1)) { $1 = $4; }",
-
-            '#('.static::VALIDVAR.')\s*\!\?=\s*(\S[^;\n\r]*);#U'
-                => "if (!$1) { $1 = $4; }",
-
-            '#('.static::VALIDVAR.')\s*\!\?=\s*(\S[^;\n\r]*)(?=[;\n\r]|\$)#U'
-                => "if (!$1) { $1 = $4; }",
-
-            '#('.static::VALIDVAR.')\s*<->\s*('.static::VALIDVAR.')#U'
-                => "\$_sv = $4; $4 = $1; $1 = \$_sv; unset(\$_sv)",
-
-            '#('.static::VALIDVAR.')((?:\!\!|\!|~)\s*)(?=[\r\n;])#U'
-                => "$1 = $4$1",
-
-
-            /***************/
-            /* Comparisons */
-            /***************/
-            '#\seq\s#'
-                => " == ",
-
-            '#\sne\s#'
-                => " != ",
-
-            '#\sis\s#'
-                => " === ",
-
-            '#\snot\s#'
-                => " !== ",
-
-            '#\slt\s#'
-                => " < ",
-
-            '#\sgt\s#'
-                => " > ",
-
-
-            /**********************/
-            /* Array short syntax */
-            /**********************/
-            '#{(\s*(?:\n+[\t ]*'.static::VALIDNAME.'[\t ]*=[^\n]+)+\s*)}#'
-                => array(get_class(), 'arrayShortSyntax'),
-
-
-            /***********/
-            /* Chainer */
-            /***********/
-            '#'.preg_quote(static::CHAINER).'('.static::PARENTHESES.')#'
-                => "(new \\Sbp\\Chainer($1))",
-
-        ));
         $content = explode("\n", $content);
         $curind = array();
         $previousRead = '';
@@ -867,7 +572,7 @@ class Sbp
         $iWrite = 0;
         foreach ($content as $index => &$line) {
             if (trim($line) !== '') {
-                $espaces = strlen(str_replace("\t", '    ', $line))-strlen(ltrim($line));
+                $espaces = strlen(str_replace("\t", '    ', $line)) - strlen(ltrim($line));
                 $c = empty($curind) ? -1 : end($curind);
                 if ($espaces > $c) {
                     if (static::isBlock($previousRead, $content, $iRead)) {
@@ -877,7 +582,7 @@ class Sbp
                             $previousRead .= '{';
                         }
                     }
-                } else if ($espaces < $c) {
+                } elseif ($espaces < $c) {
                     if ($c = substr_count($line, '}')) {
                         $curind = array_slice($curind, 0, -$c);
                     }
@@ -897,10 +602,8 @@ class Sbp
                         }
                         array_pop($curind);
                     }
-                } else {
-                    if (preg_match('#(?<![a-zA-Z0-9_\x7f-\xff$\(])('.static::MUST_CLOSE_BLOKCS.')(?![a-zA-Z0-9_\x7f-\xff])#', $previousRead)) {
-                        $previousRead .= '{}';
-                    }
+                } elseif (preg_match('#(?<![a-zA-Z0-9_\x7f-\xff$\(])('.static::MUST_CLOSE_BLOKCS.')(?![a-zA-Z0-9_\x7f-\xff])#', $previousRead)) {
+                    $previousRead .= '{}';
                 }
                 $previousRead = &$line;
                 $iRead = $index;
@@ -910,20 +613,18 @@ class Sbp
         }
         $content = implode("\n", $content);
         if (!empty($curind)) {
-            if (substr($content, -1) === "\n") {
-                $content .= str_repeat('}', count($curind)) . "\n";
-            } else {
-                $content .= "\n" . str_repeat('}', count($curind));
-            }
+            $braces = str_repeat('}', count($curind));
+            $content .= substr($content, -1) === "\n" ? $braces."\n" : "\n".$braces;
         }
         $valuesContent = $content;
         $values = array();
+        $validSubst = static::getValidStringSurrogates();
+        $validComments = static::getValidComments();
         $valueRegex = preg_quote(static::SUBST.static::VALUE).'([0-9]+)'.preg_quote(static::VALUE.static::SUBST);
         $valueRegexNonCapturant = preg_quote(static::SUBST.static::VALUE).'[0-9]+'.preg_quote(static::VALUE.static::SUBST);
         $validExpressionRegex = '(?<![a-zA-Z0-9_\x7f-\xff\$\\\\])(?:[a-zA-Z0-9_\x7f-\xff\\\\]+(?:'.$valueRegexNonCapturant.')+|\$+[a-zA-Z0-9_\x7f-\xff\\\\]+(?:'.$valueRegexNonCapturant.')*|'.$valueRegexNonCapturant.'|'.$validSubst.'|[\\\\a-zA-Z_][\\\\a-zA-Z0-9_]*|'.static::NUMBER.')';
         static::$validExpressionRegex = $validExpressionRegex;
-        $restoreValues = function ($content) use(&$values)
-        {
+        $restoreValues = function ($content) use (&$values) {
             foreach ($values as $id => &$string) {
                 if ($string !== false) {
                     $old = $content;
@@ -937,8 +638,7 @@ class Sbp
             return $content;
         };
         $aloneCustomOperator = implode('|', array_map(
-            function ($value)
-            {
+            function ($value) {
                 return '(?<![a-zA-Z0-9_])'.$value;
             },
             explode('|', static::ALLOW_ALONE_CUSTOM_OPERATOR)
@@ -951,15 +651,13 @@ class Sbp
         if (is_null($keyWords)) {
             $keyWords = static::PHP_WORDS.'|'.static::OPERATORS.'|'.static::BLOKCS;
         }
-        $filters = function ($content) use($previousKeyWords, $keyWords, $aloneCustomOperator, $restoreValues, &$values, $valueRegex, $valueRegexNonCapturant, $validSubst, $validExpressionRegex)
-        {
+        $filters = function ($content) use ($previousKeyWords, $keyWords, $aloneCustomOperator, $restoreValues, &$values, $valueRegex, $valueRegexNonCapturant, $validSubst, $validExpressionRegex) {
             return static::replaceSuperMethods(static::replace($content, array(
                 /*********/
                 /* Regex */
                 /*********/
                 '#(?<!\/)\/[^\/\n][^\n]*\/[Usimxe]*(?!\/)#'
-                    => function ($match) use($restoreValues)
-                    {
+                    => function ($match) use ($restoreValues) {
                         return static::includeString($restoreValues($match[0]));
                     },
 
@@ -967,8 +665,7 @@ class Sbp
                 /* Custom operators */
                 /********************/
                 '#(?<=^|[,\n=*\/\^%&|<>!+-]|'.$aloneCustomOperator.')[\n\t ]+(?!'.$keyWords.'|array|['.static::SUBST.static::VALUE.static::COMP.'\[\]\(\)\{\}])([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)[\t ]+(?!'.$keyWords.')('.$validExpressionRegex.')(?!::|[a-zA-Z0-9_\x7f-\xff])#'
-                    => function ($match) use($restoreValues, &$values)
-                    {
+                    => function ($match) use ($restoreValues, &$values) {
                         list($all, $keyWord, $right) = $match;
                         $id = count($values);
                         $values[$id] = $restoreValues('('.$right.')');
@@ -977,8 +674,7 @@ class Sbp
                     },
 
                 '#('.$validExpressionRegex.')(?<!'.$previousKeyWords.')[\t ]+(?!'.$keyWords.'|array|['.static::SUBST.static::VALUE.static::COMP.'\[\]\(\)\{\}])([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)[\t ]+(?!'.$keyWords.')('.$validExpressionRegex.')(?!::|[a-zA-Z0-9_\x7f-\xff])#'
-                    => function ($match) use($restoreValues, &$values)
-                    {
+                    => function ($match) use ($restoreValues, &$values) {
                         list($all, $left, $keyWord, $right) = $match;
                         $id = count($values);
                         $values[$id] = $restoreValues('('.$left.', '.$right.')');
@@ -987,7 +683,7 @@ class Sbp
                     },
             )));
         };
-        $substituteValues = function ($match) use($restoreValues, &$values, $filters)
+        $substituteValues = function ($match) use ($restoreValues, &$values, $filters)
         {
             $id = count($values);
             $values[$id] = $restoreValues($filters($match[0]));
