@@ -51,6 +51,9 @@ class Sbp
     public static function addPlugin($plugin, $from, $to = null)
     {
         if (!is_null($to)) {
+            if (is_array($from) || is_object($from)) {
+                throw new SbpException('Invalid arguments, if the second argument is an array or an object, do not specified a third argument.');
+            }
             $from = array($from => $to);
         }
         static::$plugins[$plugin] = $from;
@@ -467,7 +470,12 @@ class Sbp
     static private function loadPlugins($content)
     {
         foreach (static::$plugins as $replace) {
-            $content = is_array($replace) ? static::replace($content, $replace) : $replace($content);
+            $content = is_array($replace)
+                ? static::replace($content, $replace)
+                : (is_callable($replace) || is_string($replace)
+                    ? $replace($content)
+                    : static::replace($content, (array) $replace)
+                );
         }
         return $content;
     }
