@@ -310,7 +310,7 @@ class Sbp
         $content = static::container($container, $file, '/*sbp-container-end*/'.$content, $fin);
         $content = static::parse($content);
         $content = explode('/*sbp-container-end*/', $content, 2);
-        $content[0] = strtr($content[0], "\r\n", "  ");
+        $content[0] = strtr($content[0], "\r\n", '  ');
 
         return implode('', $content);
     }
