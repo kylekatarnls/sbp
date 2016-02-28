@@ -70,7 +70,7 @@ class Constants
             $content
         );
 
-        foreach(array(
+        foreach (array(
             'CLASS',
             'FUNCTION',
             'LINE',

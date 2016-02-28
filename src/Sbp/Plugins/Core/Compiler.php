@@ -81,7 +81,12 @@ class Compiler
             }
 
             if (call_user_func(array($caller, 'hasPlugin'), 'Sbp\Plugins\Core\CustomOperators')) {
-                $replacements['#(?<=^|[,\n=*\/\^%&|<>!+-]|'.$aloneCustomOperator.')[\n\t ]+(?!'.$keyWords.'|array|['.$subst.$value.$comp.'\[\]\(\)\{\}])([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)[\t ]+(?!'.$keyWords.')('.$validExpressionRegex.')(?!::|[a-zA-Z0-9_\x7f-\xff])#'] = 
+                $replacements[
+                    '#(?<=^|[,\n=*\/\^%&|<>!+-]|'.$aloneCustomOperator.')[\n\t ]+'.
+                    '(?!'.$keyWords.'|array|['.$subst.$value.$comp.'\[\]\(\)\{\}])'.
+                    '([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)[\t ]+'.
+                    '(?!'.$keyWords.')('.$validExpressionRegex.')(?!::|[a-zA-Z0-9_\x7f-\xff])#'
+                ] =
                     function ($match) use ($restoreValues, &$values, $value, $subst) {
                         list($all, $keyWord, $right) = $match;
                         $id = count($values);
@@ -89,7 +94,12 @@ class Compiler
 
                         return ' __sbp_'.$keyWord.$subst.$value.$id.$value.$subst;
                     };
-                $replacements['#('.$validExpressionRegex.')(?<!'.$previousKeyWords.')[\t ]+(?!'.$keyWords.'|array|['.$subst.$value.$comp.'\[\]\(\)\{\}])([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)[\t ]+(?!'.$keyWords.')('.$validExpressionRegex.')(?!::|[a-zA-Z0-9_\x7f-\xff])#'] = 
+                $replacements[
+                    '#('.$validExpressionRegex.')(?<!'.$previousKeyWords.')[\t ]+'.
+                    '(?!'.$keyWords.'|array|['.$subst.$value.$comp.'\[\]\(\)\{\}])'.
+                    '([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)[\t ]+'.
+                    '(?!'.$keyWords.')('.$validExpressionRegex.')(?!::|[a-zA-Z0-9_\x7f-\xff])#'
+                ] =
                     function ($match) use ($restoreValues, &$values, $value, $subst) {
                         list($all, $left, $keyWord, $right) = $match;
                         $id = count($values);
