@@ -70,6 +70,21 @@ class Constants
             $content
         );
 
+        foreach(array(
+            'CLASS',
+            'FUNCTION',
+            'LINE',
+            'METHOD',
+            'NAMESPACE',
+            'TRAIT',
+        ) as $constant) {
+            $content = preg_replace(
+                static::constantPattern($constant),
+                '__'.$constant.'__',
+                $content
+            );
+        }
+
         return $content;
     }
 
