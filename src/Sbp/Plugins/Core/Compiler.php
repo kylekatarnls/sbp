@@ -6,7 +6,7 @@ class Compiler
 {
     protected static $validExpressionRegex = null;
 
-    protected static function replaceSuperMethods($content, $caller)
+    public static function __replaceSuperMethods($content, $caller)
     {
         $method = explode('::', __METHOD__);
 
@@ -110,7 +110,7 @@ class Compiler
                     };
             }
 
-            return call_user_func(array($compiler, 'replaceSuperMethods'),
+            return call_user_func(array($compiler, '__replaceSuperMethods'),
                 call_user_func(array($caller, 'replace'), $content, $replacements),
                 $caller
             );
