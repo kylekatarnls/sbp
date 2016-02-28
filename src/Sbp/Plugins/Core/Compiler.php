@@ -68,7 +68,8 @@ class Compiler
             $keyWords = $phpWords.'|'.$operators.'|'.$blocks;
         }
 
-        $filters = function ($content) use ($previousKeyWords, $keyWords, $aloneCustomOperator, $restoreValues, &$values, $valueRegex, $valueRegexNonCapturant, $validSubst, $validExpressionRegex, $caller, $value, $subst) {
+        $compiler = get_called_class();
+        $filters = function ($content) use ($previousKeyWords, $keyWords, $aloneCustomOperator, $restoreValues, &$values, $valueRegex, $valueRegexNonCapturant, $validSubst, $validExpressionRegex, $caller, $value, $subst, $compiler) {
             $comp = constant($caller.'::COMP');
 
             $replacements = array();
@@ -109,7 +110,7 @@ class Compiler
                     };
             }
 
-            return static::replaceSuperMethods(
+            return call_user_func(array($compiler, 'replaceSuperMethods'),
                 call_user_func(array($caller, 'replace'), $content, $replacements),
                 $caller
             );
@@ -120,7 +121,9 @@ class Compiler
 
             return $subst.$value.$id.$value.$subst;
         };
-        while (($content = preg_replace_callback('#[\(\[][^\(\)\[\]]*[\)\]]#', $substituteValues, $content, -1, $count)) && $count > 0);
+        do {
+            $content = preg_replace_callback('#[\(\[][^\(\)\[\]]*[\)\]]#', $substituteValues, $content, -1, $count);
+        } while ($count > 0);
         $content = $restoreValues($filters($content));
 
         return $content;
