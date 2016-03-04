@@ -11,7 +11,7 @@ class Chainer
     {
         return array(
             '#'.preg_quote(constant($caller.'::CHAINER')).'('.constant($caller.'::PARENTHESES').')#',
-            "(new \\Sbp\\Chainer(\$1))",
+            '(new \\Sbp\\Chainer($1))',
         );
     }
 }

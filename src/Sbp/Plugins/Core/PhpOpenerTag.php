@@ -26,6 +26,7 @@ class PhpOpenerTag
     public static function addMarkerComment($content, $caller)
     {
         $lastParsedFile = call_user_func(array($caller, 'getLastParsedFile'));
+
         return
             '<?php '.
             constant($caller.'::COMMENT').
