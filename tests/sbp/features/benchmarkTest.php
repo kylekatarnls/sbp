@@ -1,16 +1,16 @@
 <?php
 
-use sbp\wrapper\sbp;
-use sbp\wrapper\testCase;
+use Sbp\Wrapper\Sbp;
+use Sbp\Wrapper\TestCase;
 
-class benchmarkTest extends testCase
+class BenchmarkTest extends TestCase
 {
 	public function testBenchmark()
 	{
 		$marker = 'Marker';
-		sbp::benchmark();
-		sbp::benchmark($marker);
-		$content = sbp::benchmark(sbp::TEST_GET_BENCHMARK_HTML);
+		Sbp::benchmark();
+		Sbp::benchmark($marker);
+		$content = Sbp::benchmark(Sbp::TEST_GET_BENCHMARK_HTML);
 		$this->assertTrue(stripos($content, '<html') !== false);
 		//$this->assertTrue(strpos($content, $marker) !== false);
 	}

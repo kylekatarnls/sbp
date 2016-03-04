@@ -4,9 +4,8 @@ finder:
     - "examples"
 
 enabled:
-  - concat_with_spaces
+  - long_array_syntax
 
 disabled:
   - align_double_arrow
   - short_array_syntax
-  - concat_without_spaces
