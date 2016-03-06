@@ -31,17 +31,20 @@ class ClassLoader extends \Illuminate\Support\ClassLoader
      *
      * @return void
      */
-    public static function register($prepend = true, $callback = null)
+    public static function register($prepend = true, $callback = null, $app = null)
     {
         if (!static::$registered) {
             static::$registered = spl_autoload_register(array('\\Sbp\\Laravel\\ClassLoader', 'load'), true, $prepend);
-            $app = $storage = __DIR__.'/../../../../../../app/';
+            if (is_null($app)) {
+                $app = __DIR__.'/../../../../../../app/';
+            }
             Sbp::writeIn(Sbp::SAME_DIR);
             Sbp::fileExists($app.'routes');
             $storage = $app.'storage/sbp';
             if (!file_exists($storage)) {
-                mkdir($storage, 0777);
-                file_put_contents($storage.'/.gitignore', "*\n!.gitignore");
+                if (mkdir($storage, 0777)) {
+                    file_put_contents($storage.'/.gitignore', "*\n!.gitignore");
+                }
             }
             Sbp::writeIn($storage, $callback);
         }
