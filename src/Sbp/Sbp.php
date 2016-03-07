@@ -102,6 +102,7 @@ class Sbp
             if (!class_exists($plugin)) {
                 throw new SbpException('Invalid arguments, if the second argument is not specified, the plugin name must match a existing class and the class '.$plugin.' was not found.');
             }
+            static::$plugins[$plugin] = null;
             $methods = get_class_methods($plugin);
             foreach ($methods as $method) {
                 if (substr($method, 0, 2) !== '__') {
@@ -144,7 +145,7 @@ class Sbp
 
     public static function hasPlugin($plugin)
     {
-        return isset(static::$plugins[$plugin]);
+        return array_key_exists($plugin, static::$plugins);
     }
 
     public static function benchmarkEnd()

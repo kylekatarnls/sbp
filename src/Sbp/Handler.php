@@ -4,6 +4,24 @@ namespace Sbp;
 
 class Handler extends ValueHandler
 {
+    public function match($a = null, &$matches = null, $b = null, $c = null)
+    {
+        if (is_string($this->value)) {
+            return preg_match($a, $this->value, $matches, $b, $c);
+        }
+
+        return $this->__call('match', func_get_args());
+    }
+
+    public function match_all($a = null, &$matches = null, $b = null, $c = null)
+    {
+        if (is_string($this->value)) {
+            return preg_match_all($a, $this->value, $matches, $b, $c);
+        }
+
+        return $this->__call('match_all', func_get_args());
+    }
+
     public function __call($method, $args)
     {
         if (is_object($this->value) && method_exists($this->value, $method)) {
