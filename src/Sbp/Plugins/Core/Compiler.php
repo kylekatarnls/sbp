@@ -84,7 +84,7 @@ class Compiler
             $replacements = array();
 
             if (call_user_func(array($caller, 'hasPlugin'), 'Sbp\Plugins\Core\Regex')) {
-                $replacements[Sbp\Plugins\Core\Regex::PATTERN] =
+                $replacements[Regex::PATTERN] =
                     function ($match) use ($restoreValues, $caller) {
                         return call_user_func(array($caller, 'includeString'), $restoreValues($match[0]));
                     };

@@ -15,3 +15,19 @@ echo (new \Sbp\Handler((new \Sbp\Handler(array(
 	 'tata' => 5,
 	 'lulu' => 6
 )))->keys()))->implode(', ') . "\n";
+
+echo (new \Sbp\Handler("AbcdEF"))->replace('/[a-z]/', '#') . "\n";
+
+echo (new \Sbp\Handler([1, 3, 7]))->sum() . "\n";
+
+function array_custom($array, $a, $b){
+    $array[] = $a+$b;
+    return  $array;
+}
+function str_custom($string, $a, $b){
+    $string .= $a+$b;
+    return  $string;
+}
+print_r((new \Sbp\Handler([5]))->custom(1, 2));
+
+echo (new \Sbp\Handler("abc"))->custom(1, 2) . "\n";
