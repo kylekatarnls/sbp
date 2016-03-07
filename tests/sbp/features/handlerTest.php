@@ -23,7 +23,7 @@ class HandlerTest extends \PHPUnit_Framework_TestCase
 		$this->assertSame(
             "2.2360679774998\n625\ntoto, tata, lulu\ntoto, tata, lulu\n".
             "A###EF\n11\nArray\n(\n    [0] => 5\n    [1] => 3\n)\n".
-            "1\n2\nyoh:oh-pouf-paf\n-p, -p\nabc3\n",
+            "1\n2\nyoh:oh-pouf-paf\n-p, -p\nfalse\ntrue\nfalse\nabc3\n",
             $contents
         );
 		foreach (scandir($tmp) as $file) {
