@@ -1,5 +1,15 @@
 <?
 
+Foo
+	- $bar = '1s7zz05'
+	- $baz = 'abcd'
+
+	+match($suffix)
+		< preg_match('`^[a-z]+'.$suffix.'$`', >bar) or preg_match('`^[a-z]+'.$suffix.'$`', >baz)
+
+	+match_all($suffix)
+		< preg_match('`^[a-z]+'.$suffix.'$`', >bar) and preg_match('`^[a-z]+'.$suffix.'$`', >baz)
+
 echo 5-->sqrt() . "\n"
 echo 5-->pow(4) . "\n"
 
@@ -37,5 +47,16 @@ echo "yoh-toh-pouf-paf"-->match_all(/-\w/, $matches, PREG_PATTERN_ORDER, 5) . "\
 echo "yoh-toh-pouf-paf"-->split(/-\w/, 2)-->implode(':') . "\n"
 
 echo $matches[0]-->implode(', ') . "\n"
+
+$foo = new Foo
+
+echo $foo-->match("[a-z]"-->quote()) ? 'true' : 'false'
+echo "\n"
+
+echo $foo-->match("[a-z]") ? 'true' : 'false'
+echo "\n"
+
+echo $foo-->match_all("[a-z]") ? 'true' : 'false'
+echo "\n"
 
 echo "abc"-->custom(1, 2) . "\n"
