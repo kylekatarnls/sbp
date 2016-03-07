@@ -30,4 +30,12 @@ f str_custom($string, $a, $b)
 
 print_r([5]-->custom(1, 2))
 
+echo "yoh-toh-pouf-paf"-->match(/-\w/, $matches) . "\n"
+
+echo "yoh-toh-pouf-paf"-->match_all(/-\w/, $matches, PREG_PATTERN_ORDER, 5) . "\n"
+
+echo "yoh-toh-pouf-paf"-->split(/-\w/, 2)-->implode(':') . "\n"
+
+echo $matches[0]-->implode(', ') . "\n"
+
 echo "abc"-->custom(1, 2) . "\n"
