@@ -30,4 +30,10 @@ function str_custom($string, $a, $b){
 }
 print_r((new \Sbp\Handler([5]))->custom(1, 2));
 
+$matches = [];
+
+echo (new \Sbp\Handler("yoh-toh-pouf-paf"))->match_all('/-\\w/', &$matches, PREG_PATTERN_ORDER, 5) . "\n";
+
+print_r($matches);
+
 echo (new \Sbp\Handler("abc"))->custom(1, 2) . "\n";
