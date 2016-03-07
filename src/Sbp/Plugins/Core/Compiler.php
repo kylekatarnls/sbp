@@ -17,7 +17,7 @@ class Compiler
         while ($content !== $prevContent) {
             $prevContent = $content;
             $content = preg_replace_callback(
-                '#(?<!-->)('. constant($caller.'::PARENTHESES').'->.+?'.$valueRegexNonCapturant.'|new\s+\\Sbp\\Handler.+?'.$valueRegexNonCapturant.'|'.static::$validExpressionRegex.'|'.constant($caller.'::VALIDVAR').')-->#',
+                '#(?<!-->)('.constant($caller.'::PARENTHESES').'->.+?'.$valueRegexNonCapturant.'|new\s+\\Sbp\\Handler.+?'.$valueRegexNonCapturant.'|'.static::$validExpressionRegex.'|'.constant($caller.'::VALIDVAR').')-->#',
                 function ($match) use ($method, $caller) {
                     return '(new \\Sbp\\Handler('.call_user_func($method, $match[1], $caller).'))->';
                 },
