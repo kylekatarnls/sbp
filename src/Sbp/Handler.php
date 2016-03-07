@@ -13,7 +13,7 @@ class Handler extends ValueHandler
         return $this->__call('match', func_get_args());
     }
 
-    public function match_all($a = null, &$matches = null,  $b = null, $c = null)
+    public function match_all($a = null, &$matches = null, $b = null, $c = null)
     {
         if (is_string($this->value)) {
             return preg_match_all($a, $this->value, $matches, $b, $c);
