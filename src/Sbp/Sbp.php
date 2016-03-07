@@ -215,6 +215,7 @@ class Sbp
         if (!empty($title)) {
             $list = array($time => 'Start benchmark');
             ob_start();
+
             return;
         }
         if (is_array($list)) {
