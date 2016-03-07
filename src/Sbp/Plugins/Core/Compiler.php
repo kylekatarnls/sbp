@@ -9,14 +9,23 @@ class Compiler
     public static function __replaceSuperMethods($content, $caller)
     {
         $method = explode('::', __METHOD__);
+        $subst = constant($caller.'::SUBST');
+        $value = constant($caller.'::VALUE');
+        $valueRegexNonCapturant = preg_quote($subst.$value).'[0-9]+'.preg_quote($value.$subst);
 
-        return preg_replace_callback(
-            '#('.static::$validExpressionRegex.'|'.constant($caller.'::VALIDVAR').')-->#',
-            function ($match) use ($method, $caller) {
-                return '(new \\Sbp\\Handler('.call_user_func($method, $match[1], $caller).'))->';
-            },
-            $content
-        );
+        $prevContent = null;
+        while ($content !== $prevContent) {
+            $prevContent = $content;
+            $content = preg_replace_callback(
+                '#(?<!-->)('.constant($caller.'::PARENTHESES').'->.+?'.$valueRegexNonCapturant.'|new\s+\\Sbp\\Handler.+?'.$valueRegexNonCapturant.'|'.static::$validExpressionRegex.'|'.constant($caller.'::VALIDVAR').')-->#',
+                function ($match) use ($method, $caller) {
+                    return '(new \\Sbp\\Handler('.call_user_func($method, $match[1], $caller).'))->';
+                },
+                $content
+            );
+        }
+
+        return $content;
     }
 
     public static function restoreStrings($content, $caller)

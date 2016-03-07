@@ -32,8 +32,12 @@ switch ($command = argn(1)) {
         $name = argn(2);
         Sbp::fileParse(
             __DIR__.'/tests/sbp/files/.src/'.$name.'.php',
-            __DIR__.'/tests/sbp/files/'.$name.'.php'
+            $to = __DIR__.'/tests/sbp/files/'.$name.'.php'
         );
+        echo "Compilation done in:\n";
+        echo realpath($to)."\n";
+        echo filesize($to)." bytes\n";
+        break;
 
     default:
         echo "Usage:\n  php $script <command>\n\n";

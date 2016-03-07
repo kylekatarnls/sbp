@@ -10,8 +10,8 @@ $array = {
 }
 echo $array-->keys()-->implode(', ') . "\n"
 
-echo ({
+echo {
 	toto = 4
 	tata = 5
 	lulu = 6
-}-->keys())-->implode(', ') . "\n"
+}-->keys()-->implode(', ') . "\n"
