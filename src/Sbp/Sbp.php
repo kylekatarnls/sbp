@@ -352,13 +352,9 @@ class Sbp
         }
         if (!is_readable($from)) {
             throw new SbpException($from.' is not readable, try :\nchmod '.static::fileMatchnigLetter($from).'+r '.$from, 1);
-
-            return false;
         }
         if (!is_writable($dir = dirname($to))) {
             throw new SbpException($dir.' is not writable, try :\nchmod '.static::fileMatchnigLetter($dir).'+w '.$dir, 1);
-
-            return false;
         }
         static::$lastParsedFile = $from;
         $writed = file_put_contents($to, static::parse(file_get_contents($from)));
