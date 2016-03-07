@@ -150,7 +150,7 @@ class Sbp
 
     public static function benchmarkEnd()
     {
-        static::benchmark(static::BENCHMARK_END);
+        return static::benchmark(static::BENCHMARK_END);
     }
 
     protected static function getBenchmarkHtml(&$list)
@@ -168,6 +168,9 @@ class Sbp
             $ul .= '<li>'.(is_null($previous) ? '' : '<b>'.number_format(($time - $previous) * 1000, $len).'ms</b>').$title.'</li>';
             $previous = $time;
         }
+
+        $contents = ob_get_contents();
+        ob_end_clean();
 
         return '<!doctype html>
             <html lang="en">
@@ -198,23 +201,25 @@ class Sbp
                     <ul>'.$ul.'</ul>
                     <p>All: <b>'.number_format((end($times) - reset($times)) * 1000, $len, ',', ' ').'ms</b></p>
                     <h1>Code source</h1>
-                    <pre>'.htmlspecialchars(ob_get_clean()).'</pre>
+                    <pre>'.htmlspecialchars($contents).'</pre>
                 </body>
             </html>';
     }
 
     protected static function recordBenchmark(&$list, $title)
     {
+        if ($title === static::BENCHMARK_END) {
+            return static::getBenchmarkHtml($list);
+        }
         $time = strval(microtime(true));
-        if (empty($title)) {
+        if (!empty($title)) {
             $list = array($time => 'Start benchmark');
             ob_start();
-        } elseif (is_array($list)) {
-            if ($title === static::BENCHMARK_END) {
-                exit(static::getBenchmarkHtml($list));
-            } else {
-                $list[$time] = $title;
-            }
+
+            return;
+        }
+        if (is_array($list)) {
+            $list[$time] = $title;
         }
     }
 

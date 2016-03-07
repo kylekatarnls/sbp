@@ -67,7 +67,7 @@ function sbp_include_if_exists($file, $once = false)
  */
 function sbp_benchmark($title = '')
 {
-    Sbp\Sbp::benchmark($title);
+    return Sbp\Sbp::benchmark($title);
 }
 
 /**
@@ -75,7 +75,7 @@ function sbp_benchmark($title = '')
  */
 function sbp_benchmark_end()
 {
-    Sbp\Sbp::benchmarkEnd();
+    return Sbp\Sbp::benchmarkEnd();
 }
 
 /**
