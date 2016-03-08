@@ -119,7 +119,14 @@ class TestCompileCase extends \PHPUnit_Framework_TestCase
 {
     protected function getTmp()
     {
-        return __DIR__ . '/../../.tmp/';
+        static $tmp = null;
+        if (is_null($tmp)) {
+            $tmp = __DIR__ . '/../../.tmp';
+            if (!file_exists($tmp)) {
+                $this->createTempDirectory();
+            }
+        }
+        return $tmp . '/';
     }
 
     /**
