@@ -17,7 +17,7 @@ function argn($i)
 
 $script = argn(0);
 
-if(substr($script, -4) === '.php') {
+if (substr($script, -4) === '.php') {
     $script = "php $script";
 }
 
@@ -36,7 +36,7 @@ switch ($command = argn(1)) {
     case COMPILE_TEST:
         $name = argn(2);
         $from = realpath(__DIR__.'/tests/sbp/files/.src').DIRECTORY_SEPARATOR.$name.'.php';
-        if(file_exists($from)) {
+        if (file_exists($from)) {
             $to = __DIR__.'/tests/sbp/files/'.$name.'.php';
             Sbp::fileParse($from, $to);
             echo "Compilation done in:\n";
@@ -52,7 +52,7 @@ switch ($command = argn(1)) {
 
     case COMPILE:
         $from = argn(2);
-        if(file_exists($from)) {
+        if (file_exists($from)) {
             $to = tempnam(sys_get_temp_dir(), 'sbp-compile');
             Sbp::fileParse($from, $to);
             readfile($to);
