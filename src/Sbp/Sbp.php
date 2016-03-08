@@ -505,7 +505,7 @@ class Sbp
             $pluginResult = is_array($replace)
                 ? static::replace($content, $replace)
                 : (is_callable($replace) || is_string($replace)
-                    ? call_user_func($replace, $content, __CLASS__)
+                    ? call_user_func($replace, $content, get_called_class())
                     : static::replace($content, (array) $replace)
                 );
             $content = is_array($pluginResult)

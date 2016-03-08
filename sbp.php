@@ -4,6 +4,14 @@ require_once 'vendor/autoload.php';
 
 use Sbp\Sbp;
 
+class SbpTestParse extends Sbp
+{
+    public static function getLastParsedFile()
+    {
+        return null;
+    }
+}
+
 define('CREATE_TEST', 'create-test');
 define('COMPILE_TEST', 'compile-test');
 define('COMPILE', 'compile');
@@ -38,7 +46,7 @@ switch ($command = argn(1)) {
         $from = realpath(__DIR__.'/tests/sbp/files/.src').DIRECTORY_SEPARATOR.$name.'.php';
         if (file_exists($from)) {
             $to = __DIR__.'/tests/sbp/files/'.$name.'.php';
-            Sbp::fileParse($from, $to);
+            SbpTestParse::fileParse($from, $to);
             echo "Compilation done in:\n";
             echo realpath($to)."\n";
             echo filesize($to)." bytes\n";
