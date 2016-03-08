@@ -1,0 +1,2 @@
++hello
+    < parent::hello() . " foo"
