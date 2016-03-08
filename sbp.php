@@ -8,7 +8,6 @@ class SbpTestParse extends Sbp
 {
     public static function getLastParsedFile()
     {
-        return null;
     }
 }
 
