@@ -270,15 +270,19 @@ class Sbp
             );
     }
 
-    public static function contentTab($match)
+    public static function container($container, $file, $content = null, $basename = null, $name = null)
     {
-        return $match[1].str_replace("\n", "\n".$match[1], $GLOBALS['sbpContentTab']);
-    }
-
-    public static function container($container, $file, $content, $basename = null, $name = null)
-    {
-        $basename = $basename ?: basename($file);
-        $name = $name ?: preg_replace('#\..+$#', '', $basename);
+        $content = file_get_contents($file);
+        if (is_null($basename)) {
+            $basename = basename($file);
+        }
+        if (is_null($name)) {
+            $name = preg_replace('#\..+$#', '', $basename);
+        }
+        if (is_null($container)) {
+            $container = preg_replace('#([/\\\\])(?:[^/\\\\]+)(\..+?)$#', '$1$2.container', realpath($file));
+            $container = file_exists($container) ? file_get_contents($container) : '{content}';
+        }
         $camelCase = preg_replace_callback('#[-_]([a-z])#', function ($match) { return strtoupper($match[1]); }, $name);
         $replace = array(
             '{file}' => $file,
@@ -287,21 +291,32 @@ class Sbp
             '{camelCase}' => $camelCase,
             '{CamelCase}' => ucfirst($camelCase),
         );
-        $GLOBALS['sbpContentTab'] = $content;
-        $container = preg_replace_callback('#(\t*){content}#', array(get_class(), 'contentTab'), $container);
-        unset($GLOBALS['sbpContentTab']);
+        $container = preg_replace_callback('#(\t*){content}#', function ($match) use ($content) {
+            return $match[1].str_replace("\n", "\n".$match[1], $content);
+        }, $container);
 
         return str_replace(array_keys($replace), array_values($replace), $container);
     }
 
-    public static function parseWithContainer($container, $file, $content, $basename = null, $name = null)
+    public static function parseWithContainer($container, $file, $content = null, $basename = null, $name = null)
     {
-        $content = static::container($container, $file, '/*sbp-container-end*/'.$content, $fin);
+        $content = static::container($container, $file, '/*sbp-container-end*/'.$content, $basename, $name);
         $content = static::parse($content);
         $content = explode('/*sbp-container-end*/', $content, 2);
         $content[0] = strtr($content[0], "\r\n", '  ');
 
         return implode('', $content);
+    }
+
+    public static function execute($file, $container = null)
+    {
+        $tmp = tempnam(sys_get_temp_dir(), 'sbp-exe');
+        file_put_contents($tmp, static::parseWithContainer($container, $file));
+
+        $result = include $tmp;
+        unlink($tmp);
+
+        return $result;
     }
 
     public static function replaceString($match)
