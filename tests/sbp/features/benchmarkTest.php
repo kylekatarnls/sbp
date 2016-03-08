@@ -12,6 +12,5 @@ class BenchmarkTest extends TestCase
 		Sbp::benchmark($marker);
 		$content = Sbp::benchmark(Sbp::TEST_GET_BENCHMARK_HTML);
 		$this->assertTrue(stripos($content, '<html') !== false);
-		//$this->assertTrue(strpos($content, $marker) !== false);
 	}
 }

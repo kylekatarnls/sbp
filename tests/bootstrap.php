@@ -67,6 +67,7 @@ class TestCase extends \PHPUnit_Framework_TestCase
         $cleaner = function ($value) use ($trim) {
             $value = preg_replace('#/\*.*\*/#U', '', trim($value, $trim));
             $value = preg_replace('#\s*[\[\]\(\)\{\},!]\s*#', '$1', $value);
+            return $value;
         };
         $to = $cleaner($to);
         $from = $cleaner($from);
@@ -108,8 +109,54 @@ class TestCase extends \PHPUnit_Framework_TestCase
         if (is_null($keepMessage)) {
             $keepMessage = "Normal PHP in compiled \"$from\" must be keeped intact if reparsed";
         }
-        $to = preg_replace('#^(.+)(/[^/]+)$#', '$1/.src$2', $from);
+        $to = preg_replace('#^(.+)([/\\\\])([^/\\\\]+)$#', '$1$2.src$3', $from);
         $this->assertTrue(static::matchContent($from, $to), $message);
         $this->assertTrue(static::matchContent($from, $from), $keepMessage);
+    }
+}
+
+class TestCompileCase extends \PHPUnit_Framework_TestCase
+{
+    protected function getTmp()
+    {
+        static $tmp = null;
+        if (is_null($tmp)) {
+            $tmp = __DIR__ . '/../../.tmp';
+            if (!file_exists($tmp)) {
+                $this->createTempDirectory();
+            }
+        }
+        return $tmp . '/';
+    }
+
+    /**
+     * @before
+     */
+    public function createTempDirectory()
+    {
+        $tmp = $this->getTmp();
+        if (!is_dir($tmp)) {
+            mkdir($tmp);
+        }
+        InitialSbp::writeIn($tmp, function ($name) {
+            $slash = strrpos($name, '/');
+
+            return '_' . substr($name, $slash + 1);
+        });
+    }
+
+    /**
+     * @after
+     */
+    public function removeTempDirectory()
+    {
+        $tmp = $this->getTmp();
+        InitialSbp::writeIn(InitialSbp::SAME_DIR, null);
+        foreach (scandir($tmp) as $file) {
+            if (substr($file, 0, 1) === '_') {
+                unlink($tmp . $file);
+            }
+        }
+        rmdir($tmp);
     }
 }

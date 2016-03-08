@@ -23,7 +23,7 @@ class ReplaceStrings
     public static function saveComments($content, $caller)
     {
         return array(
-            '#'.constant($caller.'::COMMENTS').'|'.call_user_func(array($caller, 'stringRegex')).'|\?>.+<\?php#sU',
+            '#'.constant($caller.'::COMMENTS').'|'.call_user_func(array($caller, 'stringRegex')).'|\?>[\s\S]*?<\?php|\?>[\s\S]*?$#sU',
             $caller.'::replaceString',
         );
     }

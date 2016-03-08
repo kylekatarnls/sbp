@@ -84,6 +84,11 @@ class Sbp
         return static::validSubst('(?:'.implode('|', $GLOBALS['commentStrings']).')');
     }
 
+    public static function getHtmlCodes()
+    {
+        return static::validSubst('(?:'.implode('|', $GLOBALS['htmlCodes']).')');
+    }
+
     public static function prod($on = true)
     {
         static::$prod = (bool) $on;
@@ -120,7 +125,7 @@ class Sbp
                     }
                     foreach ($value as &$to) {
                         if (is_string($to) && substr($to, 0, 4) === '::__') {
-                            $to = $plugin.substr($to, 2);
+                            $to = $plugin.$to;
                         }
                     }
                     static::$plugins[$plugin.'::$'.$var] = $value;
@@ -352,13 +357,9 @@ class Sbp
         }
         if (!is_readable($from)) {
             throw new SbpException($from.' is not readable, try :\nchmod '.static::fileMatchnigLetter($from).'+r '.$from, 1);
-
-            return false;
         }
         if (!is_writable($dir = dirname($to))) {
             throw new SbpException($dir.' is not writable, try :\nchmod '.static::fileMatchnigLetter($dir).'+w '.$dir, 1);
-
-            return false;
         }
         static::$lastParsedFile = $from;
         $writed = file_put_contents($to, static::parse(file_get_contents($from)));
@@ -495,13 +496,16 @@ class Sbp
     private static function loadPlugins($content)
     {
         foreach (static::$plugins as $name => $replace) {
+            if (is_null($replace)) {
+                continue;
+            }
             if (is_string($replace) && !is_callable($replace)) {
                 throw new SbpException($replace.' is not callable.', 1);
             }
             $pluginResult = is_array($replace)
                 ? static::replace($content, $replace)
                 : (is_callable($replace) || is_string($replace)
-                    ? call_user_func($replace, $content, __CLASS__)
+                    ? call_user_func($replace, $content, get_called_class())
                     : static::replace($content, (array) $replace)
                 );
             $content = is_array($pluginResult)

@@ -4,4 +4,3 @@ $texte = substr($texte, 0, 2);
 
 $_POST['username'] = stripslashes($_POST['username']);
 $_POST['username'] = stripslashes($_POST['username']);
-?>
