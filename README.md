@@ -4,6 +4,7 @@ SBP
 [![Latest Stable Version](https://poser.pugx.org/kylekatarnls/sbp/v/stable.png)](https://packagist.org/packages/kylekatarnls/sbp)
 [![Build Status](https://travis-ci.org/kylekatarnls/sbp.svg?branch=master)](https://travis-ci.org/kylekatarnls/sbp)
 [![StyleCI](https://styleci.io/repos/16852644/shield?)](https://styleci.io/repos/16852644)
+[![codecov.io](https://codecov.io/github/kylekatarnls/sbp/coverage.svg?branch=master)](https://codecov.io/github/kylekatarnls/sbp?branch=master)
 [![Code Climate](https://codeclimate.com/github/kylekatarnls/sbp/badges/gpa.svg)](https://codeclimate.com/github/kylekatarnls/sbp)
 
 
