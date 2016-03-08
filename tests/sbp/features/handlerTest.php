@@ -7,7 +7,7 @@ class HandlerTest extends TestCompileCase
 {
 	public function testSuperMethods()
 	{
-        $tmp = $this->tmp;
+        $tmp = $this->getTmp();
 		copy(__DIR__.'/../files/.src/super_methods.php', $tmp.'/_super_methods.sbp.php');
         ob_start();
         sbp($tmp.'/_super_methods');
@@ -23,7 +23,7 @@ class HandlerTest extends TestCompileCase
 
 	public function testChainer()
 	{
-        $tmp = $this->tmp;
+        $tmp = $this->getTmp();
 		copy(__DIR__.'/../files/.src/chainer.php', $tmp.'/_chainer.sbp.php');
         ob_start();
         sbp($tmp.'/_chainer');

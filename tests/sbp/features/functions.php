@@ -7,7 +7,7 @@ class FunctionsTest extends TestCompileCase
 {
     public function testInclude()
     {
-        $tmp = $this->tmp;
+        $tmp = $this->getTmp();
         copy(__DIR__ . '/../files/.src/return.php', $tmp . '_return.sbp.php');
         copy(__DIR__ . '/../files/.src/return.php', $tmp . '_return.bis.sbp.php');
         $this->assertSame(42, sbp($tmp . '_return'), 'sbp function shoudl include and return the SBP file result.');
@@ -31,7 +31,7 @@ class FunctionsTest extends TestCompileCase
 
     public function testBenchmark()
     {
-        $tmp = $this->tmp;
+        $tmp = $this->getTmp();
         copy(__DIR__ . '/../files/.src/short_tag.php', $tmp . '_short_tag.sbp.php');
         sbp_benchmark('foo');
         sbp($tmp . '_short_tag');

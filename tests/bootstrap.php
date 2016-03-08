@@ -117,15 +117,17 @@ class TestCase extends \PHPUnit_Framework_TestCase
 
 class TestCompileCase extends \PHPUnit_Framework_TestCase
 {
-    protected $tmp;
+    protected function getTmp()
+    {
+        return __DIR__ . '/../../.tmp/';
+    }
 
     /**
      * @before
      */
     public function createTempDirectory()
     {
-        $tmp = __DIR__ . '/../../.tmp/';
-        $this->tmp = $tmp;
+        $tmp = $this->getTmp();
         if (!is_dir($tmp)) {
             mkdir($tmp);
         }
@@ -141,7 +143,7 @@ class TestCompileCase extends \PHPUnit_Framework_TestCase
      */
     public function removeTempDirectory()
     {
-        $tmp = $this->tmp;
+        $tmp = $this->getTmp();
         InitialSbp::writeIn(InitialSbp::SAME_DIR, null);
         foreach (scandir($tmp) as $file) {
             if (substr($file, 0, 1) === '_') {
