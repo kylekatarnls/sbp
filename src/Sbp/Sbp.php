@@ -84,6 +84,11 @@ class Sbp
         return static::validSubst('(?:'.implode('|', $GLOBALS['commentStrings']).')');
     }
 
+    public static function getHtmlCodes()
+    {
+        return static::validSubst('(?:'.implode('|', $GLOBALS['htmlCodes']).')');
+    }
+
     public static function prod($on = true)
     {
         static::$prod = (bool) $on;
@@ -120,7 +125,7 @@ class Sbp
                     }
                     foreach ($value as &$to) {
                         if (is_string($to) && substr($to, 0, 4) === '::__') {
-                            $to = $plugin.substr($to, 2);
+                            $to = $plugin.$to;
                         }
                     }
                     static::$plugins[$plugin.'::$'.$var] = $value;
@@ -491,6 +496,9 @@ class Sbp
     private static function loadPlugins($content)
     {
         foreach (static::$plugins as $name => $replace) {
+            if (is_null($replace)) {
+                continue;
+            }
             if (is_string($replace) && !is_callable($replace)) {
                 throw new SbpException($replace.' is not callable.', 1);
             }

@@ -1,21 +1,14 @@
 <?php
 
 use Sbp\Sbp;
+use Sbp\Wrapper\TestCompileCase;
 
-class HandlerTest extends \PHPUnit_Framework_TestCase
+class HandlerTest extends TestCompileCase
 {
 	public function testSuperMethods()
 	{
-		$tmp = __DIR__.'/../../../.tmp';
-		if (!is_dir($tmp)) {
-			mkdir($tmp);
-		}
+        $tmp = $this->tmp;
 		copy(__DIR__.'/../files/.src/super_methods.php', $tmp.'/_super_methods.sbp.php');
-		Sbp::writeIn($tmp, function ($name) {
-			$slash = strrpos($name, '/');
-
-			return '_'.substr($name, $slash + 1);
-		});
         ob_start();
         sbp($tmp.'/_super_methods');
         $contents = ob_get_contents();
@@ -26,11 +19,19 @@ class HandlerTest extends \PHPUnit_Framework_TestCase
             "1\n2\nyoh:oh-pouf-paf\n-p, -p\nfalse\ntrue\nfalse\nabc3\n",
             $contents
         );
-		foreach (scandir($tmp) as $file) {
-			if (substr($file, 0, 1) === '_') {
-				unlink($tmp.'/'.$file);
-			}
-		}
-		rmdir($tmp);
+	}
+
+	public function testChainer()
+	{
+        $tmp = $this->tmp;
+		copy(__DIR__.'/../files/.src/chainer.php', $tmp.'/_chainer.sbp.php');
+        ob_start();
+        sbp($tmp.'/_chainer');
+        $contents = ob_get_contents();
+        ob_end_clean();
+		$this->assertSame(
+            "trucmachinchose",
+            $contents
+        );
 	}
 }
