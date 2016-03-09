@@ -4,13 +4,17 @@ use Sbp\Laravel\ClassLoader;
 use Sbp\Sbp;
 use Sbp\SbpException;
 
+class ClassLoaderClone extends ClassLoader
+{
+}
+
 class LoadTest extends \PHPUnit_Framework_TestCase
 {
     public function testDefaultStorageDirectory()
     {
         $message = null;
         try {
-            ClassLoader::register();
+            ClassLoaderClone::register();
         } catch (SbpException $e) {
             $message = $e->getMessage();
         }
