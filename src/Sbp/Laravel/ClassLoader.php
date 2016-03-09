@@ -3,6 +3,7 @@
 namespace Sbp\Laravel;
 
 use Sbp\Sbp;
+use Sbp\SbpException;
 
 class ClassLoader extends \Illuminate\Support\ClassLoader
 {
@@ -36,11 +37,14 @@ class ClassLoader extends \Illuminate\Support\ClassLoader
         if (!static::$registered) {
             static::$registered = spl_autoload_register(array('\\Sbp\\Laravel\\ClassLoader', 'load'), true, $prepend);
             if (is_null($app)) {
-                $app = __DIR__.'/../../../../../../app/';
+                $app = __DIR__.'/../../../../../../app';
+            }
+            if (!file_exists($app.'/storage') || !is_writable($app.'/storage')) {
+                throw new SbpException("Laravel app and/or writable storage directory not found at $app, please specify the path with the following code:\nSbp\\Laravel\\ClassLoader::register(true, 'sha1', \$laravelAppPath)");
             }
             Sbp::writeIn(Sbp::SAME_DIR);
-            Sbp::fileExists($app.'routes');
-            $storage = $app.'storage/sbp';
+            Sbp::fileExists($app.'/routes');
+            $storage = $app.'/storage/sbp';
             if (!file_exists($storage)) {
                 if (mkdir($storage, 0777)) {
                     file_put_contents($storage.'/.gitignore', "*\n!.gitignore");
