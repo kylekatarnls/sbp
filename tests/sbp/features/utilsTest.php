@@ -18,21 +18,43 @@ class FileEmulation
         switch (substr($path, $len, 1)) {
             case 'u':
                 $uid = getmyuid();
+                $gid = getmygid() + 1;
+                switch (substr($path, $len + 2)) {
+                    case 'not_readable':
+                        $mode &= ~0400;
+                        break;
+                    case 'not_writable':
+                        $mode &= ~0200;
+                        break;
+                }
                 break;
             case 'g':
+                $uid = getmyuid() + 1;
                 $gid = getmygid();
+                switch (substr($path, $len + 2)) {
+                    case 'not_readable':
+                        $mode &= ~0440;
+                        break;
+                    case 'not_writable':
+                        $mode &= ~0220;
+                        break;
+                }
+                break;
+            case 'o':
+                $uid = getmyuid() + 1;
+                $gid = getmygid() + 1;
+                switch (substr($path, $len + 2)) {
+                    case 'not_readable':
+                        $mode &= ~0444;
+                        break;
+                    case 'not_writable':
+                        $mode &= ~0222;
+                        break;
+                }
                 break;
             case 'a':
                 $uid = getmyuid();
                 $gid = getmygid();
-                break;
-        }
-        switch (substr($path, $len + 2)) {
-            case 'not_readable':
-                $mode = 0222;
-                break;
-            case 'not_writable':
-                $mode = 0444;
                 break;
         }
         $keys = array(
@@ -89,24 +111,23 @@ class UtilsTest extends TestCompileCase
             stream_wrapper_register('fiemulate', 'FileEmulation');
         }
         $message = '';
+        $mode = stat('fiemulate://'.$from)['mode'];
         try {
             Sbp::fileParse('fiemulate://'.$from, 'fiemulate://'.$to);
         } catch (SbpException $e) {
             $message = $e->getMessage();
         }
+        $this->assertTrue($message !== '', 'Parse '.$from.' to '.$to.' should throw an exception');
         $this->assertTrue(strpos($message, 'chmod '.$expected) !== false, 'The following message does not contain "chmod '.$expected.'":'."\n".$message);
     }
 
     public function testFileParseExceptions()
     {
-        // if unix
-        if (strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
-            $this->emulateFile('fiemulate://u_not_readable', 'fiemulate://open_dir/file', 'u+r');
-            $this->emulateFile('fiemulate://g_not_readable', 'fiemulate://open_dir/file', 'g+r');
-            $this->emulateFile('fiemulate://o_not_readable', 'fiemulate://open_dir/file', 'o+r');
-            $this->emulateFile('fiemulate://a_openfile', 'fiemulate://u_not_writable/file', 'u+w');
-            $this->emulateFile('fiemulate://a_openfile', 'fiemulate://g_not_writable/file', 'g+w');
-            $this->emulateFile('fiemulate://a_openfile', 'fiemulate://o_not_writable/file', 'o+w');
-        }
+        $this->emulateFile('u_not_readable', 'open_dir/file', 'u+r');
+        $this->emulateFile('g_not_readable', 'open_dir/file', 'g+r');
+        $this->emulateFile('o_not_readable', 'open_dir/file', 'o+r');
+        $this->emulateFile('a_openfile', 'u_not_writable/file', 'u+w');
+        $this->emulateFile('a_openfile', 'g_not_writable/file', 'g+w');
+        $this->emulateFile('a_openfile', 'o_not_writable/file', 'o+w');
     }
 }
