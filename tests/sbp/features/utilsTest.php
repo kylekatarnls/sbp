@@ -20,11 +20,11 @@ class FileEmulation
                 $uid = getmyuid();
                 break;
             case 'g':
-                $gid = getmyuid();
+                $gid = getmygid();
                 break;
             case 'a':
                 $uid = getmyuid();
-                $gid = getmyuid();
+                $gid = getmygid();
                 break;
         }
         switch (substr($path, $len + 2)) {
@@ -35,11 +35,29 @@ class FileEmulation
                 $mode = 0444;
                 break;
         }
+        $keys = array(
+            'dev',
+            'ino',
+            'mode',
+            'nlink',
+            'uid',
+            'gid',
+            'rdev',
+            'size',
+            'atime',
+            'mtime',
+            'ctime',
+            'blksize',
+            'blocks',
+        );
+        $values = array(0, 0, $mode, 0, $uid, $gid, 0, 0, 0, 0, 0, 0, 0);
+        foreach ($keys as $index => $key) {
+            $values[$key] = $values[$index];
+        }
 
-        return array(0, 0, $mode, 0, $uid, $gid, 0, 0, 0, 0, 0, 0, 0);
+        return $values;
     }
 }
-
 
 class UtilsTest extends TestCompileCase
 {
@@ -83,7 +101,7 @@ class UtilsTest extends TestCompileCase
     {
         $this->emulateFile('fiemulate://u_not_readable', 'fiemulate://open_dir/file', 'u+r');
         // if unix
-        if (getmyuid()) {
+        if (strtoupper(substr(PHP_OS, 0, 3)) !== 'WIN') {
             $this->emulateFile('fiemulate://g_not_readable', 'fiemulate://open_dir/file', 'g+r');
             $this->emulateFile('fiemulate://o_not_readable', 'fiemulate://open_dir/file', 'o+r');
             $this->emulateFile('fiemulate://a_openfile', 'fiemulate://u_not_writable/file', 'u+w');
