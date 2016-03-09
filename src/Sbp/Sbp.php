@@ -264,7 +264,6 @@ class Sbp
         return
             strpos($file, $k = ' '.static::COMMENT) !== false ||
             (
-                substr($file, 0, 1) === '/' &&
                 @file_exists($file) &&
                 strpos(file_get_contents($file), $k) !== false
             );

@@ -8,9 +8,9 @@ class HandlerTest extends TestCompileCase
 	public function testSuperMethods()
 	{
         $tmp = $this->getTmp();
-		copy(__DIR__.'/../files/.src/super_methods.php', $tmp.'/_super_methods.sbp.php');
+		copy(__DIR__.'/../files/.src/super_methods.php', $tmp.'_super_methods.sbp.php');
         ob_start();
-        sbp($tmp.'/_super_methods');
+        sbp($tmp.'_super_methods');
         $contents = ob_get_contents();
         ob_end_clean();
 		$this->assertSame(
@@ -24,9 +24,9 @@ class HandlerTest extends TestCompileCase
 	public function testChainer()
 	{
         $tmp = $this->getTmp();
-		copy(__DIR__.'/../files/.src/chainer.php', $tmp.'/_chainer.sbp.php');
+		copy(__DIR__.'/../files/.src/chainer.php', $tmp.'_chainer.sbp.php');
         ob_start();
-        sbp($tmp.'/_chainer');
+        sbp($tmp.'_chainer');
         $contents = ob_get_contents();
         ob_end_clean();
 		$this->assertSame(
