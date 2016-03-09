@@ -2,6 +2,8 @@
 
 namespace Sbp;
 
+use Sbp\Plugins\Helpers\FileHelper;
+
 include_once __DIR__.'/functions.php';
 
 class Sbp
@@ -279,7 +281,7 @@ class Sbp
             $name = preg_replace('#\..+$#', '', $basename);
         }
         if (is_null($container)) {
-            $container = preg_replace('#([/\\\\])(?:[^/\\\\]+)(\..+?)$#', '$1$2.container', realpath($file));
+            $container = preg_replace('#([/\\\\])(?:[^/\\\\]+)(\..+?)$#', '$1$2.container', FileHelper::cleanPath($file));
             $container = file_exists($container) ? file_get_contents($container) : '{content}';
         }
         $camelCase = preg_replace_callback('#[-_]([a-z])#', function ($match) { return strtoupper($match[1]); }, $name);
@@ -352,28 +354,16 @@ class Sbp
         return '([\'"]).*(?<!'.$antislash.')(?:'.$antislash.$antislash.')*\\1';
     }
 
-    public static function fileMatchnigLetter($file)
-    {
-        if (fileowner($file) === getmyuid()) {
-            return 'u';
-        }
-        if (filegroup($file) === getmygid()) {
-            return 'g';
-        }
-
-        return 'o';
-    }
-
     public static function fileParse($from, $to = null)
     {
         if (is_null($to)) {
             $to = $from;
         }
         if (!is_readable($from)) {
-            throw new SbpException($from.' is not readable, try :\nchmod '.static::fileMatchnigLetter($from).'+r '.$from, 1);
+            throw new SbpException($from.' is not readable, try :\nchmod '.FileHelper::matchingLetter($from).'+r '.$from, 1);
         }
         if (!is_writable($dir = dirname($to))) {
-            throw new SbpException($dir.' is not writable, try :\nchmod '.static::fileMatchnigLetter($dir).'+w '.$dir, 1);
+            throw new SbpException($dir.' is not writable, try :\nchmod '.FileHelper::matchingLetter($dir).'+w '.$dir, 1);
         }
         static::$lastParsedFile = $from;
         $writed = file_put_contents($to, static::parse(file_get_contents($from)));
@@ -417,13 +407,6 @@ class Sbp
         }
 
         return false;
-    }
-
-    public static function sbpFromFile($file)
-    {
-        if (preg_match('#/*:(.+):*/#U', file_get_contents($file), $match)) {
-            return $match[1];
-        }
     }
 
     public static function includeFile($file)

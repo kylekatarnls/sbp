@@ -2,6 +2,8 @@
 
 namespace Sbp\Plugins\Core;
 
+use Sbp\Plugins\Helpers\FileHelper;
+
 class Constants
 {
     /**
@@ -25,10 +27,7 @@ class Constants
         $validComments = call_user_func(array($caller, 'getValidComments'));
         $lastParsedFile = call_user_func(array($caller, 'getLastParsedFile'));
 
-        $__file = is_null($lastParsedFile) ? null : realpath($lastParsedFile);
-        if ($__file === false) {
-            $__file = $lastParsedFile;
-        }
+        $__file = is_null($lastParsedFile) ? null : FileHelper::cleanPath($lastParsedFile);
         $__dir = is_null($__file) ? null : dirname($__file);
         $__file = call_user_func(array($caller, 'includeString'), $__file);
         $__dir = call_user_func(array($caller, 'includeString'), $__dir);

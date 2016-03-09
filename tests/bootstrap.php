@@ -121,7 +121,7 @@ class TestCompileCase extends \PHPUnit_Framework_TestCase
     {
         static $tmp = null;
         if (is_null($tmp)) {
-            $tmp = __DIR__ . '/../../.tmp';
+            $tmp = __DIR__ . '/../.tmp';
             if (!file_exists($tmp)) {
                 $this->createTempDirectory();
             }
