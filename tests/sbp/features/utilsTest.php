@@ -10,8 +10,8 @@ class FileEmulation
     function url_stat($path)
     {
         $mode = 0666;
-        $uid = 7;
-        $gid = 8;
+        $uid = 0;
+        $gid = 0;
 
         $len = strlen('fiemulate://');
         $type = substr($path, $len, 1);
@@ -36,26 +36,26 @@ class FileEmulation
                 break;
         }
 
-        return array(1, 2, $mode, 3, $uid, $gid, 4, 1, 1, 1, 1, 5, 6);
+        return array(0, 0, $mode, 0, $uid, $gid, 0, 0, 0, 0, 0, 0, 0);
     }
 }
 
 
 class UtilsTest extends TestCompileCase
 {
-	public function testIsSbp()
-	{
+    public function testIsSbp()
+    {
         $tmp = $this->getTmp();
         copy(__DIR__.'/../files/.src/return.php', $tmp.'_return.sbp.php');
         copy(__DIR__.'/../../bootstrap.php', $tmp.'_bootstrap.sbp.php');
         Sbp::fileParse($tmp.'_return.sbp.php', $tmp.'__return.sbp.php');
-		$this->assertFalse(Sbp::isSbp($tmp.'_bootstrap.sbp.php'));
-		$this->assertFalse(Sbp::isSbp($tmp.'_return.sbp.php'));
-		$this->assertTrue(Sbp::isSbp($tmp.'__return.sbp.php'));
-	}
+        $this->assertFalse(Sbp::isSbp($tmp.'_bootstrap.sbp.php'));
+        $this->assertFalse(Sbp::isSbp($tmp.'_return.sbp.php'));
+        $this->assertTrue(Sbp::isSbp($tmp.'__return.sbp.php'));
+    }
 
-	public function testFileHelper()
-	{
+    public function testFileHelper()
+    {
         $tmp = $this->getTmp();
         copy(__DIR__.'/../files/.src/return.php', $tmp.'_return.sbp.php');
         copy(__DIR__.'/../../bootstrap.php', $tmp.'_bootstrap.sbp.php');
@@ -63,10 +63,10 @@ class UtilsTest extends TestCompileCase
         $source = FileHelper::getSbpSource($tmp.'__return.sbp.php');
         $this->assertTrue(file_exists($source));
         $this->assertSame($source, FileHelper::cleanPath($tmp.'_return.sbp.php'));
-	}
+    }
 
-	protected function emulateFile($from, $to, $expected)
-	{
+    protected function emulateFile($from, $to, $expected)
+    {
         if (!in_array('fiemulate', stream_get_wrappers())) {
             stream_wrapper_register('fiemulate', 'FileEmulation');
         }
@@ -77,10 +77,10 @@ class UtilsTest extends TestCompileCase
             $message = $e->getMessage();
         }
         $this->assertTrue(strpos($message, 'chmod '.$expected) !== false, 'The following message does not contain "chmod '.$expected.'":'."\n".$message);
-	}
+    }
 
-	public function testFileParseExceptions()
-	{
+    public function testFileParseExceptions()
+    {
         $this->emulateFile('fiemulate://u_not_readable', 'fiemulate://open_dir/file', 'u+r');
         // if unix
         if (getmyuid()) {
@@ -90,5 +90,5 @@ class UtilsTest extends TestCompileCase
             $this->emulateFile('fiemulate://a_openfile', 'fiemulate://g_not_writable/file', 'g+w');
             $this->emulateFile('fiemulate://a_openfile', 'fiemulate://o_not_writable/file', 'o+w');
         }
-	}
+    }
 }
