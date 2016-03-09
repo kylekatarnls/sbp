@@ -123,11 +123,13 @@ class UtilsTest extends TestCompileCase
 
     public function testFileParseExceptions()
     {
-        $this->emulateFile('u_not_readable', 'open_dir/file', 'u+r');
-        $this->emulateFile('g_not_readable', 'open_dir/file', 'g+r');
-        $this->emulateFile('o_not_readable', 'open_dir/file', 'o+r');
-        $this->emulateFile('a_openfile', 'u_not_writable/file', 'u+w');
-        $this->emulateFile('a_openfile', 'g_not_writable/file', 'g+w');
-        $this->emulateFile('a_openfile', 'o_not_writable/file', 'o+w');
+        if (!defined('HHVM_VERSION')) {
+            $this->emulateFile('u_not_readable', 'open_dir/file', 'u+r');
+            $this->emulateFile('g_not_readable', 'open_dir/file', 'g+r');
+            $this->emulateFile('o_not_readable', 'open_dir/file', 'o+r');
+            $this->emulateFile('a_openfile', 'u_not_writable/file', 'u+w');
+            $this->emulateFile('a_openfile', 'g_not_writable/file', 'g+w');
+            $this->emulateFile('a_openfile', 'o_not_writable/file', 'o+w');
+        }
     }
 }
