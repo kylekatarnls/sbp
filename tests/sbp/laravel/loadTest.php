@@ -1,21 +1,37 @@
 <?php
 
 use Sbp\Laravel\ClassLoader;
+use Sbp\Sbp;
+use Sbp\SbpException;
 
 class LoadTest extends \PHPUnit_Framework_TestCase
 {
-	public function testLaravelLoader()
-	{
+    public function testDefaultStorageDirectory()
+    {
+        $message = null;
+        try {
+            ClassLoader::register();
+        } catch (SbpException $e) {
+            $message = $e->getMessage();
+        }
+        $app = __DIR__.'/../../../../../../app';
+        if (file_exists($app.'/storage') && is_writable($app.'/storage')) {
+            $this->assertSame(realpath(dirname(Sbp::phpFile('foo'))), realpath($app.'/storage/sbp'), 'PHP files should be stored in the sbp storage directory in the Laravel app directory');
+
+            return;
+        }
+        $this->assertTrue(strpos($message, 'register') !== false, 'Register method shoudl throw an exception no valid app path is found');
+    }
+
+    public function testLaravelLoader()
+    {
         if (!file_exists(sys_get_temp_dir().'/storage')) {
             mkdir(sys_get_temp_dir().'/storage');
-        }
-        if (!file_exists(sys_get_temp_dir().'/storage/sbp')) {
-            mkdir(sys_get_temp_dir().'/storage/sbp');
         }
         if (!file_exists(sys_get_temp_dir().'/controllers')) {
             mkdir(sys_get_temp_dir().'/controllers');
         }
-        ClassLoader::register(true, 'sha1', sys_get_temp_dir().'/');
+        ClassLoader::register(false, 'sha1', sys_get_temp_dir().'/');
         ClassLoader::addDirectories(array(sys_get_temp_dir().'/controllers'));
         file_put_contents(sys_get_temp_dir().'/controllers/FooBar.sbp.php', '<?'."\nFooBar\n\t+ \$a = 42");
         $foo = new FooBar();
@@ -23,7 +39,7 @@ class LoadTest extends \PHPUnit_Framework_TestCase
         foreach (array(sys_get_temp_dir().'/controllers', sys_get_temp_dir().'/storage/sbp') as $directory) {
             if (file_exists($directory)) {
                 foreach (scandir($directory) as $file) {
-                    if (substr($file, 0, 1) !== '.') {
+                    if (is_file($directory.'/'.$file)) {
                         unlink($directory.'/'.$file);
                     }
                 }
@@ -33,5 +49,5 @@ class LoadTest extends \PHPUnit_Framework_TestCase
         if (file_exists(sys_get_temp_dir().'/storage')) {
             rmdir(sys_get_temp_dir().'/storage');
         }
-	}
+    }
 }
