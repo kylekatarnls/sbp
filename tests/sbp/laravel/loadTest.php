@@ -6,27 +6,14 @@ use Sbp\SbpException;
 
 class ClassLoaderClone extends ClassLoader
 {
+    public static function unregister()
+    {
+        static::$registered = false;
+    }
 }
 
 class LoadTest extends \PHPUnit_Framework_TestCase
 {
-    public function testDefaultStorageDirectory()
-    {
-        $message = null;
-        try {
-            ClassLoaderClone::register();
-        } catch (SbpException $e) {
-            $message = $e->getMessage();
-        }
-        $app = __DIR__.'/../../../../../../app';
-        if (file_exists($app.'/storage') && is_writable($app.'/storage')) {
-            $this->assertSame(realpath(dirname(Sbp::phpFile('foo'))), realpath($app.'/storage/sbp'), 'PHP files should be stored in the sbp storage directory in the Laravel app directory');
-
-            return;
-        }
-        $this->assertTrue(strpos($message, 'register') !== false, 'Register method shoudl throw an exception no valid app path is found');
-    }
-
     public function testLaravelLoader()
     {
         if (!file_exists(sys_get_temp_dir().'/storage')) {
@@ -53,5 +40,23 @@ class LoadTest extends \PHPUnit_Framework_TestCase
         if (file_exists(sys_get_temp_dir().'/storage')) {
             rmdir(sys_get_temp_dir().'/storage');
         }
+    }
+
+    public function testDefaultStorageDirectory()
+    {
+        ClassLoaderClone::unregister();
+        $message = null;
+        try {
+            ClassLoaderClone::register();
+        } catch (SbpException $e) {
+            $message = $e->getMessage();
+        }
+        $app = __DIR__.'/../../../../../../app';
+        if (file_exists($app.'/storage') && is_writable($app.'/storage')) {
+            $this->assertSame(realpath(dirname(Sbp::phpFile('foo'))), realpath($app.'/storage/sbp'), 'PHP files should be stored in the sbp storage directory in the Laravel app directory');
+
+            return;
+        }
+        $this->assertTrue(strpos($message, 'register') !== false, 'Register method shoudl throw an exception no valid app path is found');
     }
 }
