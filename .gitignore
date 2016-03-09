@@ -2,6 +2,9 @@
 /build
 coverage.xml
 
+# Unit tests
+.tmp
+
 # Composer
 /vendor
 /composer.lock
