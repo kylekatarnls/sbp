@@ -28,6 +28,12 @@ echo {
 
 echo "AbcdEF"-->replace(/[a-z]/, '#') . "\n"
 
+echo "AbcdEF"-->replace_callback(/[a-z]/, f° ($match)
+	< ord($match[0])
+) . "\n"
+
+echo "AbcdEF"-->filter(/[a-z]/, '?') . "\n"
+
 echo [1, 3, 7]-->sum() . "\n"
 
 f array_custom($array, $a, $b)
