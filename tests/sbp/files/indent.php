@@ -13,7 +13,7 @@ try{
 echo "!";
 
 function yoh () {
-    if $a;
+    if ($a) {}
     else{
         echo "Hello";
     }

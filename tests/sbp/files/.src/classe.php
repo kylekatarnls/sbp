@@ -1,4 +1,7 @@
 <?
+
+namespace Family
+
 ClasseMere
 	// Contenu de la classe mère
 
