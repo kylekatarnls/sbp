@@ -58,7 +58,7 @@ switch ($command = argn(1)) {
                 continue;
             }
             echo "File not found at:\n";
-            echo $from."\n";
+            echo "$from\n";
             echo "To create a new test with this name, enter:\n";
             echo "$script ".CREATE_TEST." $name \n";
         }
@@ -74,7 +74,7 @@ switch ($command = argn(1)) {
             break;
         }
         echo "File not found at:\n";
-        echo $from."\n";
+        echo "$from\n";
         break;
 
     default:

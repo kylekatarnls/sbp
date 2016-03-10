@@ -38,9 +38,6 @@ class Indentation
             while ($indent !== 0) {
                 $open = strrpos($content, '(') ?: 0;
                 $close = strrpos($content, ')') ?: 0;
-                if ($open === 0 && $close === 0) {
-                    return false;
-                }
                 if ($open > $close) {
                     $indent--;
                     $content = substr($content, 0, $open);
@@ -93,9 +90,6 @@ class Indentation
                         }
                     }
                 } elseif ($espaces < $indent) {
-                    if ($indent = substr_count($line, '}')) {
-                        $curind = array_slice($curind, 0, -$indent);
-                    }
                     while ($espaces < ($pop = end($curind))) {
                         if (trim($previousWrite, "\t }") === '') {
                             if (strpos($previousWrite, '}') === false) {
