@@ -19,7 +19,7 @@ class PluginTest extends TestCase
 	}
 
 	/**
-	 * @expectedException Exception
+	 * @expectedException Sbp\SbpException
 	 */
 	public function testPluginClassError()
 	{
@@ -27,7 +27,7 @@ class PluginTest extends TestCase
 	}
 
 	/**
-	 * @expectedException Exception
+	 * @expectedException Sbp\SbpException
 	 */
 	public function testPluginArgumentsError()
 	{

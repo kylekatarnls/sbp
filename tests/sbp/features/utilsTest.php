@@ -134,15 +134,21 @@ class UtilsTest extends TestCompileCase
     }
 
     /**
-     * @expectedException Exception
+     * @expectedException Sbp\SbpException
      */
     public function testWriteInReadOnly()
     {
+        if (defined('HHVM_VERSION')) {
+            throw new SbpException("Cannot be tested in HHVM");
+        }
+        if (!in_array('fiemulate', stream_get_wrappers())) {
+            stream_wrapper_register('fiemulate', 'FileEmulation');
+        }
         Sbp::writeIn('fiemulate://u_not_writable');
     }
 
     /**
-     * @expectedException Exception
+     * @expectedException Sbp\SbpException
      */
     public function testWriteInNowhere()
     {
@@ -150,7 +156,7 @@ class UtilsTest extends TestCompileCase
     }
 
     /**
-     * @expectedException Exception
+     * @expectedException Sbp\SbpException
      */
     public function testWriteInWrongCallback()
     {

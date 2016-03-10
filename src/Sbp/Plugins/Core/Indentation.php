@@ -4,12 +4,20 @@ namespace Sbp\Plugins\Core;
 
 class Indentation
 {
-    protected static function findLastBlock(&$line, $blocks)
+    protected static function mustClose(&$line, &$previousRead, $caller)
+    {
+        if (preg_match('#(?<![a-zA-Z0-9_\x7f-\xff$\(])('.constant($caller.'::ALLOW_EMPTY_BLOCKS').')(?![a-zA-Z0-9_\x7f-\xff])#', $previousRead)) {
+            if (preg_match('#(?<![a-zA-Z0-9_\x7f-\xff$\(])('.constant($caller.'::BLOCKS').')(?![a-zA-Z0-9_\x7f-\xff])#', $line)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected static function findLastBlock(&$line, array $blocks)
     {
         $pos = false;
-        if (!is_array($blocks)) {
-            $blocks = array($blocks);
-        }
         foreach ($blocks as $block) {
             if (preg_match('#(?<![a-zA-Z0-9$_])'.$block.'(?![a-zA-Z0-9_])#s', $line, $match, PREG_OFFSET_CAPTURE)) {
                 $p = $match[0][1] + 1;
@@ -78,7 +86,9 @@ class Indentation
                 $espaces = strlen(str_replace("\t", '    ', $line)) - strlen(ltrim($line));
                 $c = empty($curind) ? -1 : end($curind);
                 if ($espaces > $c) {
-                    if (static::isBlock($previousRead, $content, $iRead, constant($caller.'::BLOKCS'))) {
+                    if (static::mustClose($line, $previousRead, $caller)) {
+                        $previousRead .= '{}';
+                    } elseif (static::isBlock($previousRead, $content, $iRead, constant($caller.'::BLOCKS'))) {
                         if (substr(rtrim($previousRead), -1) !== '{'
                         && substr(ltrim($line), 0, 1) !== '{') {
                             $curind[] = $espaces;
@@ -105,7 +115,7 @@ class Indentation
                         }
                         array_pop($curind);
                     }
-                } elseif (preg_match('#(?<![a-zA-Z0-9_\x7f-\xff$\(])('.constant($caller.'::MUST_CLOSE_BLOKCS').')(?![a-zA-Z0-9_\x7f-\xff])#', $previousRead)) {
+                } elseif (preg_match('#(?<![a-zA-Z0-9_\x7f-\xff$\(])('.constant($caller.'::MUST_CLOSE_BLOCKS').')(?![a-zA-Z0-9_\x7f-\xff])#', $previousRead)) {
                     $previousRead .= '{}';
                 }
                 $previousRead = &$line;

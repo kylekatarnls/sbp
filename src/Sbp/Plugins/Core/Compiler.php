@@ -67,8 +67,8 @@ class Compiler
 
         $phpWords = constant($caller.'::PHP_WORDS');
         $operators = constant($caller.'::OPERATORS');
-        $mustCloseBlocks = constant($caller.'::MUST_CLOSE_BLOKCS');
-        $blocks = constant($caller.'::BLOKCS');
+        $mustCloseBlocks = constant($caller.'::MUST_CLOSE_BLOCKS');
+        $blocks = constant($caller.'::BLOCKS');
 
         if (is_null($previousKeyWords)) {
             $previousKeyWords = $phpWords.'|'.$operators.'|'.$mustCloseBlocks;

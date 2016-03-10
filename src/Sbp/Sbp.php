@@ -23,10 +23,11 @@ class Sbp
     const COMMENTS = '(?:\/\/|\#).*(?=\n)|\/\*(?:.|\n)*\*\/';
     const OPERATORS = '\|\||\&\&|or|and|xor|is|not|<>|lt|gt|<=|>=|\!==|===|\?\:';
     const PHP_WORDS = 'true|false|null|echo|print|static|yield|var|exit|as|case|default|clone|endswtch|endwhile|endfor|endforeach|callable|endif|enddeclare|final|finally|label|goto|const|global|namespace|instanceof|new|throw|include|require|include_once|require_once|use|exit|continue|return|break|extends|implements|abstract|public|protected|private|function|interface';
-    const BLOKCS = 'if|else|elseif|try|catch|function|class|trait|switch|while|for|foreach|do';
+    const BLOCKS = 'if|else|elseif|try|catch|function|class|trait|switch|while|for|foreach|do';
     const ALLOW_ALONE_CUSTOM_OPERATOR = 'if|elseif|foreach|for|while|or|and|xor';
-    const MUST_CLOSE_BLOKCS = 'try|catch|function|class|trait|switch|interface';
-    const IF_BLOKCS = 'if|elseif|catch|switch|while|for|foreach';
+    const MUST_CLOSE_BLOCKS = 'try|catch|function|class|trait|switch|interface';
+    const IF_BLOCKS = 'if|elseif|catch|switch|while|for|foreach';
+    const ALLOW_EMPTY_BLOCKS = 'if|else|elseif|try|catch|switch|while|for|foreach|do';
     const START = '((?:^|[\n;\{\}])(?:(?:\/\/|\#).*(?=\n)|\/\*(?:.|\n)*\*\/\s*)*\s*)';
     const ABSTRACT_SHORTCUTS = 'abstract|abst|abs|a';
     const BENCHMARK_END = -1;
