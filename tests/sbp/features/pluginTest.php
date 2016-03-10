@@ -1,21 +1,11 @@
 <?php
 
+use Sbp\SbpException;
 use Sbp\Wrapper\Sbp;
 use Sbp\Wrapper\TestCase;
 
 class PluginTest extends TestCase
 {
-	/**
-	 * @after
-	 */
-	public function removeAllPlugins()
-	{
-		sbp_remove_plugin('jQuery');
-		sbp_remove_plugin('foo1');
-		sbp_remove_plugin('foo2');
-		sbp_remove_plugin('foo3');
-	}
-
 	public function testAddPlugin()
 	{
 		sbp_add_plugin('jQuery', '$(', 'new jQuery(');
@@ -50,25 +40,34 @@ class PluginTest extends TestCase
 			throw new \Exception("Error Processing Request", 1);
 		});
 		$this->assertParse("\$bar = 1\necho \$bar", "\$bar = 1;\necho \$bar;");
+		sbp_remove_plugin('foo1');
 	}
 
-	/**
-	 * @expectedException Exception
-	 */
 	public function testPluginWithException()
 	{
-		sbp_add_plugin('foo2', '`foo`', function () {
-			throw new \Exception("Error Processing Request", 1);
-		});
-		Sbp::parse("<?\n\$foo = 1\necho \$foo");
+		$message = '';
+		try {
+			sbp_add_plugin('foo2', '`foo`', function () {
+				throw new \Exception("Error Processing Request", 1);
+			});
+			Sbp::parse("<?\n\$foo = 1\necho \$foo");
+		} catch (SbpException $e) {
+			$message = $e->getMessage();
+		}
+		$this->assertTrue(strpos($message, 'Replacement') !== false);
+		sbp_remove_plugin('foo2');
 	}
 
-	/**
-	 * @expectedException Exception
-	 */
 	public function testPluginNotCallable()
 	{
-		sbp_add_plugin('foo3', 'not_callable');
-		Sbp::parse("<?\necho 'Hello'");
+		$message = '';
+		try {
+			sbp_add_plugin('foo3', 'not_callable');
+			Sbp::parse("<?\necho 'Hello'");
+		} catch (SbpException $e) {
+			$message = $e->getMessage();
+		}
+		$this->assertTrue(strpos($message, 'callable') !== false);
+		sbp_remove_plugin('foo3');
 	}
 }
