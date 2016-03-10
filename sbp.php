@@ -42,19 +42,26 @@ switch ($command = argn(1)) {
 
     case COMPILE_TEST:
         $name = argn(2);
-        $from = realpath(__DIR__.'/tests/sbp/files/.src').DIRECTORY_SEPARATOR.$name.'.php';
-        if (file_exists($from)) {
-            $to = __DIR__.'/tests/sbp/files/'.$name.'.php';
-            SbpTestParse::fileParse($from, $to);
-            echo "Compilation done in:\n";
-            echo realpath($to)."\n";
-            echo filesize($to)." bytes\n";
-            break;
+        $names = $name === '--all'
+            ? array_map(function ($file) {
+                return substr($file, -4) === '.php' ? substr(basename($file), 0, -4) : null;
+            }, scandir(__DIR__.'/tests/sbp/files'))
+            : array($name);
+        foreach ($names as $name) {
+            $from = realpath(__DIR__.'/tests/sbp/files/.src').DIRECTORY_SEPARATOR.$name.'.php';
+            if (file_exists($from)) {
+                $to = __DIR__.'/tests/sbp/files/'.$name.'.php';
+                SbpTestParse::fileParse($from, $to);
+                echo "Compilation done in:\n";
+                echo realpath($to)."\n";
+                echo filesize($to)." bytes\n";
+                continue;
+            }
+            echo "File not found at:\n";
+            echo $from."\n";
+            echo "To create a new test with this name, enter:\n";
+            echo "$script ".CREATE_TEST." $name \n";
         }
-        echo "File not found at:\n";
-        echo $from."\n";
-        echo "To create a new test with this name, enter:\n";
-        echo "$script ".CREATE_TEST." $name \n";
         break;
 
     case COMPILE:

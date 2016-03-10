@@ -81,7 +81,7 @@ class Indentation
                 if (preg_match('`^\s*interface\s`', $previousRead)) {
                     $inInterface = $indent;
                 }
-                if (($espaces <= $indent || ($indent === -1 && $espaces === 0)) && preg_match('#(?<![a-zA-Z0-9_\x7f-\xff$\(])('.constant($caller.'::ALLOW_EMPTY_BLOCKS').')(?![a-zA-Z0-9_\x7f-\xff])#', $previousRead)) {
+                if (($espaces <= $indent || ($indent === -1 && $espaces === 0)) && preg_match('#(?<![a-zA-Z0-9_\x7f-\xff$\(])('.constant($caller.'::ALLOW_EMPTY_BLOCKS').')(?![a-zA-Z0-9_\x7f-\xff])#', $previousRead) && strpos($previousRead, '{') === false) {
                     $previousRead .= preg_match('`^\s*namespace\s`', $previousRead) || (preg_match('`^\s*([a-zA-Z_]+\s+)*function\s`', $previousRead) && $inInterface !== false) ? ';' : ' {}';
                 }
                 if ($espaces > $indent) {
