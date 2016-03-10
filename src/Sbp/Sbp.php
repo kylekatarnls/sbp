@@ -219,7 +219,7 @@ class Sbp
             return static::getBenchmarkHtml($list);
         }
         $time = strval(microtime(true));
-        if (!empty($title)) {
+        if (empty($title)) {
             $list = array($time => 'Start benchmark');
             ob_start();
 
