@@ -132,4 +132,28 @@ class UtilsTest extends TestCompileCase
             $this->emulateFile('a_openfile', 'o_not_writable/file', 'o+w');
         }
     }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testWriteInReadOnly()
+    {
+        Sbp::writeIn('fiemulate://u_not_writable');
+    }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testWriteInNowhere()
+    {
+        Sbp::writeIn('does_not_exists');
+    }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testWriteInWrongCallback()
+    {
+        Sbp::writeIn(null, 'not_a_valid_callback');
+    }
 }
