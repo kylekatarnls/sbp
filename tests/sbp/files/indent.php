@@ -6,8 +6,20 @@ if ($a) {}
 else{
     echo "Hello";
 }
-try{}
+try{
     echo " world";
-catch (Exception $e) {}
+}catch (Exception $e) {
 
 echo "!";
+
+function yoh () {
+    if $a;
+    else{
+        echo "Hello";
+    }
+    try{
+        echo " world";
+    } catch (Exception $e) {}
+
+    echo "!";
+}}
