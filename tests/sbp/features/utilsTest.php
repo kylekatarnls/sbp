@@ -138,6 +138,9 @@ class UtilsTest extends TestCompileCase
      */
     public function testWriteInReadOnly()
     {
+        if (!in_array('fiemulate', stream_get_wrappers())) {
+            stream_wrapper_register('fiemulate', 'FileEmulation');
+        }
         Sbp::writeIn('fiemulate://u_not_writable');
     }
 
