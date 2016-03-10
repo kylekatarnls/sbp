@@ -28,6 +28,12 @@ echo (new \Sbp\Handler((new \Sbp\Handler(array(
 
 echo (new \Sbp\Handler("AbcdEF"))->replace('/[a-z]/', '#') . "\n";
 
+echo (new \Sbp\Handler("AbcdEF"))->replace_callback('/[a-z]/', function($match){
+	return  ord($match[0]);
+}) . "\n";
+
+echo (new \Sbp\Handler("AbcdEF"))->filter('/[a-z]/', '?') . "\n";
+
 echo (new \Sbp\Handler([1, 3, 7]))->sum() . "\n";
 
 function array_custom($array, $a, $b){

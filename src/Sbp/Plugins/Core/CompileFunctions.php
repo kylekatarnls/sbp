@@ -5,10 +5,6 @@ namespace Sbp\Plugins\Core;
 class CompileFunctions
 {
     public static $restoreFunction = array(
-        '#(?<=^|\s)(function\s[^{]+);#U' => '$1 {}',
-
-        '#(?<![a-zA-Z0-9_\x7f-\xff\$])function(\s[^{]*);#' => 'function$1 {}',
-
         '#(?<![a-zA-Z0-9_\x7f-\xff\$])function[\t ]+(array[\t ].+|_*[A-Z\$\&\\\\].+)?(?<!->)\s*\{#U' => 'function ($1) {',
 
         '#(?<![a-zA-Z0-9_\x7f-\xff\$])function\s+use(?![a-zA-Z0-9_\x7f-\xff])#U' => 'function () use',

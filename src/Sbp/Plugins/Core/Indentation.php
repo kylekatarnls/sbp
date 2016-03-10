@@ -4,17 +4,6 @@ namespace Sbp\Plugins\Core;
 
 class Indentation
 {
-    protected static function mustClose(&$line, &$previousRead, $caller)
-    {
-        if (preg_match('#(?<![a-zA-Z0-9_\x7f-\xff$\(])('.constant($caller.'::ALLOW_EMPTY_BLOCKS').')(?![a-zA-Z0-9_\x7f-\xff])#', $previousRead)) {
-            if (preg_match('#(?<![a-zA-Z0-9_\x7f-\xff$\(])('.constant($caller.'::BLOCKS').')(?![a-zA-Z0-9_\x7f-\xff])#', $line)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     protected static function findLastBlock(&$line, array $blocks)
     {
         $pos = false;
@@ -44,19 +33,19 @@ class Indentation
             return false;
         }
         if ($open < $close) {
-            $c = $close - $open;
+            $indent = $close - $open;
             $content = ' '.implode("\n", array_slice($grouped, 0, $iRead));
-            while ($c !== 0) {
+            while ($indent !== 0) {
                 $open = strrpos($content, '(') ?: 0;
                 $close = strrpos($content, ')') ?: 0;
                 if ($open === 0 && $close === 0) {
                     return false;
                 }
                 if ($open > $close) {
-                    $c--;
+                    $indent--;
                     $content = substr($content, 0, $open);
                 } else {
-                    $c++;
+                    $indent++;
                     $content = substr($content, 0, $close);
                 }
             }
@@ -81,23 +70,31 @@ class Indentation
         $previousWrite = '';
         $iRead = 0;
         $iWrite = 0;
+        $inInterface = false;
         foreach ($content as $index => &$line) {
             if (trim($line) !== '') {
                 $espaces = strlen(str_replace("\t", '    ', $line)) - strlen(ltrim($line));
-                $c = empty($curind) ? -1 : end($curind);
-                if ($espaces > $c) {
-                    if (static::mustClose($line, $previousRead, $caller)) {
-                        $previousRead .= '{}';
-                    } elseif (static::isBlock($previousRead, $content, $iRead, constant($caller.'::BLOCKS'))) {
+                $indent = empty($curind) ? -1 : end($curind);
+                if ($inInterface !== false && $indent <= $inInterface) {
+                    $inInterface = false;
+                }
+                if (preg_match('`^\s*interface\s`', $previousRead)) {
+                    $inInterface = $indent;
+                }
+                if (($espaces <= $indent || ($indent === -1 && $espaces === 0)) && preg_match('#(?<![a-zA-Z0-9_\x7f-\xff$\(])('.constant($caller.'::ALLOW_EMPTY_BLOCKS').')(?![a-zA-Z0-9_\x7f-\xff])#', $previousRead) && strpos($previousRead, '{') === false) {
+                    $previousRead .= preg_match('`^\s*namespace\s`', $previousRead) || (preg_match('`^\s*([a-zA-Z_]+\s+)*function\s`', $previousRead) && $inInterface !== false) ? ';' : ' {}';
+                }
+                if ($espaces > $indent) {
+                    if (static::isBlock($previousRead, $content, $iRead, constant($caller.'::BLOCKS'))) {
                         if (substr(rtrim($previousRead), -1) !== '{'
                         && substr(ltrim($line), 0, 1) !== '{') {
                             $curind[] = $espaces;
                             $previousRead .= '{';
                         }
                     }
-                } elseif ($espaces < $c) {
-                    if ($c = substr_count($line, '}')) {
-                        $curind = array_slice($curind, 0, -$c);
+                } elseif ($espaces < $indent) {
+                    if ($indent = substr_count($line, '}')) {
+                        $curind = array_slice($curind, 0, -$indent);
                     }
                     while ($espaces < ($pop = end($curind))) {
                         if (trim($previousWrite, "\t }") === '') {
@@ -115,8 +112,6 @@ class Indentation
                         }
                         array_pop($curind);
                     }
-                } elseif (preg_match('#(?<![a-zA-Z0-9_\x7f-\xff$\(])('.constant($caller.'::MUST_CLOSE_BLOCKS').')(?![a-zA-Z0-9_\x7f-\xff])#', $previousRead)) {
-                    $previousRead .= '{}';
                 }
                 $previousRead = &$line;
                 $iRead = $index;

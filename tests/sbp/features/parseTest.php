@@ -32,5 +32,16 @@ class ParseTest extends TestCase
     public function testParseFile($file)
     {
         $this->assertParseFile($file);
+        $errors = trim(shell_exec('php -l '.$file));
+        if (substr($file, -14) === 'bad_syntax.php') {
+            $this->assertTrue((
+                    strpos($errors, "Parse error: syntax error, unexpected ')'") === 0 ||
+                    strpos($errors, "Fatal error: syntax error, unexpected ')'") === 0
+                ),
+                'The PHP syntax should be valid, errors found in:'."\n$file\n$errors"
+            );
+            return;
+        }
+        $this->assertTrue(strpos($errors, 'No syntax errors detected') === 0, 'The PHP syntax should be valid, errors found in:'."\n$file\n$errors");
     }
 }
