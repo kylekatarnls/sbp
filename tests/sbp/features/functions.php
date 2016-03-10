@@ -41,7 +41,7 @@ class FunctionsTest extends TestCompileCase
     {
         $tmp = $this->getTmp();
         copy(__DIR__ . '/../files/.src/short_tag.php', $tmp . '_short_tag.sbp.php');
-        sbp_benchmark('foo');
+        sbp_benchmark();
         sbp($tmp . '_short_tag');
         $contents = sbp_benchmark_end();
         $this->assertFalse(empty($contents), 'benchmark should provide some contents');
