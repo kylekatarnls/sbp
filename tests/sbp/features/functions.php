@@ -19,9 +19,17 @@ class FunctionsTest extends TestCompileCase
     /**
      * @expectedException Exception
      */
-    public function testException()
+    public function testExceptionInclude()
     {
         sbp('i-do-not-exists');
+    }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testExceptionIncludeOnce()
+    {
+        sbp_include('neither-do-i', true);
     }
 
     public function testSoftError()
