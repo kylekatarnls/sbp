@@ -17,7 +17,7 @@ class FunctionsTest extends TestCompileCase
     }
 
     /**
-     * @expectedException Exception
+     * @expectedException Sbp\SbpException
      */
     public function testExceptionInclude()
     {
@@ -25,7 +25,7 @@ class FunctionsTest extends TestCompileCase
     }
 
     /**
-     * @expectedException Exception
+     * @expectedException Sbp\SbpException
      */
     public function testExceptionIncludeOnce()
     {
