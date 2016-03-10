@@ -437,6 +437,23 @@ class Sbp
         return include_once $phpFile;
     }
 
+    protected static function replaceWith($content, $search, $replace)
+    {
+        if (is_callable($replace)) {
+            return preg_replace_callback($search, function ($matches) use ($replace) {
+                $result = call_user_func($replace, $matches, __CLASS__);
+
+                return is_array($result)
+                    ? static::replace($content, $result)
+                    : $result;
+            }, $content);
+        }
+
+        return substr($search, 0, 1) === '#'
+            ? preg_replace($search, $replace, $content)
+            : str_replace($search, $replace, $content);
+    }
+
     public static function replace($content, $replace)
     {
         if (is_array($replace) && count($replace) === 2 && key($replace) === 0) {
@@ -446,17 +463,7 @@ class Sbp
         foreach ($replace as $search => $replace) {
             $catched = false;
             try {
-                $content = (is_callable($replace)
-                    ? preg_replace_callback($search, function ($matches) use ($replace) {
-                        $result = call_user_func($replace, $matches, __CLASS__);
-
-                        return is_array($result) ? static::replace($content, $result) : $result;
-                    }, $content)
-                    : (substr($search, 0, 1) === '#'
-                        ? preg_replace($search, $replace, $content)
-                        : str_replace($search, $replace, $content)
-                    )
-                );
+                $content = static::replaceWith($content, $search, $replace);
             } catch (\Exception $e) {
                 $catched = true;
                 throw new SbpException('Replacement error: \''.$e->getMessage()."' in:\n".$search."\nwith:\n".var_export($replace, true), 1, $e);
