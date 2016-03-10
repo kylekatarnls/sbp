@@ -34,4 +34,18 @@ class HandlerTest extends TestCompileCase
             $contents
         );
 	}
+
+	public function testParseInTheSameFile()
+	{
+        $tmp = $this->getTmp();
+		file_put_contents($tmp.'_foo.sbp.php', "<?\nif true\n\techo 'Hello'");
+		Sbp::fileParse($tmp.'_foo.sbp.php');
+		$lines = file($tmp.'_foo.sbp.php');
+		unset($lines[0]);
+		$contents = trim(implode('', $lines));
+		$this->assertSame(
+            "if (true) {\n\techo 'Hello';\n}",
+            $contents
+        );
+	}
 }
