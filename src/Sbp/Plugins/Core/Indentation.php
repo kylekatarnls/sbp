@@ -4,17 +4,6 @@ namespace Sbp\Plugins\Core;
 
 class Indentation
 {
-    protected static function mustClose(&$line, &$previousRead, $caller)
-    {
-        if (preg_match('#(?<![a-zA-Z0-9_\x7f-\xff$\(])('.constant($caller.'::ALLOW_EMPTY_BLOCKS').')(?![a-zA-Z0-9_\x7f-\xff])#', $previousRead)) {
-            if (preg_match('#(?<![a-zA-Z0-9_\x7f-\xff$\(])('.constant($caller.'::BLOCKS').')(?![a-zA-Z0-9_\x7f-\xff])#', $line)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     protected static function findLastBlock(&$line, array $blocks)
     {
         $pos = false;
@@ -86,7 +75,7 @@ class Indentation
                 $espaces = strlen(str_replace("\t", '    ', $line)) - strlen(ltrim($line));
                 $c = empty($curind) ? -1 : end($curind);
                 if ($espaces > $c) {
-                    if (static::mustClose($line, $previousRead, $caller)) {
+                    if ($c === -1 && $espaces === 0 && preg_match('#(?<![a-zA-Z0-9_\x7f-\xff$\(])('.constant($caller.'::ALLOW_EMPTY_BLOCKS').')(?![a-zA-Z0-9_\x7f-\xff])#', $previousRead)) {
                         $previousRead .= '{}';
                     } elseif (static::isBlock($previousRead, $content, $iRead, constant($caller.'::BLOCKS'))) {
                         if (substr(rtrim($previousRead), -1) !== '{'

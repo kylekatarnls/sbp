@@ -8,7 +8,7 @@ else{
 }
 try{
     echo " world";
-}catch (Exception $e) {
+}catch (Exception $e) {}
 
 echo "!";
 
@@ -22,4 +22,4 @@ function yoh () {
     } catch (Exception $e) {}
 
     echo "!";
-}}
+}
