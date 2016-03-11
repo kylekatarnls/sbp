@@ -3,6 +3,7 @@
 namespace Sbp;
 
 use Sbp\Plugins\Helpers\FileHelper;
+use Sbp\Plugins\Helpers\StorageHelper;
 
 include_once __DIR__.'/functions.php';
 
@@ -79,30 +80,30 @@ class Sbp
 
     public static function getValidStringSurrogates()
     {
-        return static::validSubst('(?:'.implode('|', $GLOBALS['quotedStrings']).')');
+        return static::validSubst(StorageHelper::regex('quotedStrings'));
     }
 
     public static function getValidComments()
     {
-        return static::validSubst('(?:'.implode('|', $GLOBALS['commentStrings']).')');
+        return static::validSubst(StorageHelper::regex('commentStrings'));
     }
 
     public static function getHtmlCodes()
     {
-        return static::validSubst('(?:'.implode('|', $GLOBALS['htmlCodes']).')');
+        return static::validSubst(StorageHelper::regex('htmlCodes'));
     }
 
-    public static function prod($on = true)
+    public static function prod($prod = true)
     {
-        static::$prod = (bool) $on;
+        static::$prod = (bool) $prod;
     }
 
-    public static function dev($off = true)
+    public static function dev($dev = true)
     {
-        static::$prod = !$off;
+        static::$prod = !$dev;
     }
 
-    public static function addPlugin($plugin, $from = null, $to = null)
+    public static function addPlugin($plugin, $from = null, $replacement = null)
     {
         static::init();
 
@@ -126,9 +127,9 @@ class Sbp
                     if (count($value) === 2 && key($value) === 0) {
                         $value = array($value[0] => $value[1]);
                     }
-                    foreach ($value as &$to) {
-                        if (is_string($to) && substr($to, 0, 4) === '::__') {
-                            $to = $plugin.$to;
+                    foreach ($value as &$replacement) {
+                        if (is_string($replacement) && substr($replacement, 0, 4) === '::__') {
+                            $replacement = $plugin.$replacement;
                         }
                     }
                     static::$plugins[$plugin.'::$'.$var] = $value;
@@ -137,11 +138,11 @@ class Sbp
 
             return;
         }
-        if (!is_null($to)) {
+        if (!is_null($replacement)) {
             if (is_array($from) || is_object($from)) {
                 throw new SbpException('Invalid arguments, if the second argument is an array or an object, do not specified a third argument.');
             }
-            $from = array($from => $to);
+            $from = array($from => $replacement);
         }
         static::$plugins[$plugin] = $from;
     }
@@ -171,9 +172,9 @@ class Sbp
             return strlen(end($key)) - 3;
         }, $times))));
         $list[strval(microtime(true))] = 'End benchmark';
-        $ul = '';
+        $lines = '';
         foreach ($list as $time => $title) {
-            $ul .= '<li>'.(is_null($previous) ? '' : '<b>'.number_format(($time - $previous) * 1000, $len).'ms</b>').$title.'</li>';
+            $lines .= '<li>'.(is_null($previous) ? '' : '<b>'.number_format(($time - $previous) * 1000, $len).'ms</b>').$title.'</li>';
             $previous = $time;
         }
 
@@ -206,7 +207,7 @@ class Sbp
                 </head>
                 <body>
                     <h1>Benckmark</h1>
-                    <ul>'.$ul.'</ul>
+                    <ul>'.$lines.'</ul>
                     <p>All: <b>'.number_format((end($times) - reset($times)) * 1000, $len, ',', ' ').'ms</b></p>
                     <h1>Code source</h1>
                     <pre>'.htmlspecialchars($contents).'</pre>
@@ -265,10 +266,10 @@ class Sbp
     public static function isSbp($file)
     {
         return
-            strpos($file, $k = ' '.static::COMMENT) !== false ||
+            strpos($file, $comment = ' '.static::COMMENT) !== false ||
             (
                 @file_exists($file) &&
-                strpos(file_get_contents($file), $k) !== false
+                strpos(file_get_contents($file), $comment) !== false
             );
     }
 
@@ -326,14 +327,13 @@ class Sbp
         if (is_array($match)) {
             $match = $match[0];
         }
-        $id = count($GLOBALS['replaceStrings']);
-        $GLOBALS['replaceStrings'][$id] = $match;
+        $id = StorageHelper::add('replaceStrings', $match);
         if (in_array(substr($match, 0, 1), array('/', '#'))) {
-            $GLOBALS['commentStrings'][] = $id;
+            StorageHelper::add('commentStrings', $id);
         } elseif (strpos($match, '?') === 0) {
-            $GLOBALS['htmlCodes'][] = $id;
+            StorageHelper::add('htmlCodes', $id);
         } else {
-            $GLOBALS['quotedStrings'][] = $id;
+            StorageHelper::add('quotedStrings', $id);
         }
 
         return static::COMP.static::SUBST.$id.static::SUBST.static::COMP;
@@ -486,7 +486,7 @@ class Sbp
 
     public static function replaceStrings($content)
     {
-        foreach ($GLOBALS['replaceStrings'] as $id => $string) {
+        foreach (StorageHelper::all('replaceStrings') as $id => $string) {
             $content = str_replace(static::COMP.static::SUBST.$id.static::SUBST.static::COMP, $string, $content);
         }
 
@@ -525,10 +525,7 @@ class Sbp
     {
         static::init();
 
-        $GLOBALS['replaceStrings'] = array();
-        $GLOBALS['htmlCodes'] = array();
-        $GLOBALS['quotedStrings'] = array();
-        $GLOBALS['commentStrings'] = array();
+        StorageHelper::init();
 
         return static::loadPlugins($content);
     }
