@@ -3,6 +3,7 @@
 namespace Sbp;
 
 use Sbp\Plugins\Helpers\FileHelper;
+use Sbp\Plugins\Helpers\StorageHelper;
 
 include_once __DIR__.'/functions.php';
 
@@ -79,17 +80,17 @@ class Sbp
 
     public static function getValidStringSurrogates()
     {
-        return static::validSubst('(?:'.implode('|', $GLOBALS['quotedStrings']).')');
+        return static::validSubst(StorageHelper::regex('quotedStrings'));
     }
 
     public static function getValidComments()
     {
-        return static::validSubst('(?:'.implode('|', $GLOBALS['commentStrings']).')');
+        return static::validSubst(StorageHelper::regex('commentStrings'));
     }
 
     public static function getHtmlCodes()
     {
-        return static::validSubst('(?:'.implode('|', $GLOBALS['htmlCodes']).')');
+        return static::validSubst(StorageHelper::regex('htmlCodes'));
     }
 
     public static function prod($prod = true)
@@ -326,14 +327,13 @@ class Sbp
         if (is_array($match)) {
             $match = $match[0];
         }
-        $id = count($GLOBALS['replaceStrings']);
-        $GLOBALS['replaceStrings'][$id] = $match;
+        $id = StorageHelper::add('replaceStrings', $match);
         if (in_array(substr($match, 0, 1), array('/', '#'))) {
-            $GLOBALS['commentStrings'][] = $id;
+            StorageHelper::add('commentStrings', $id);
         } elseif (strpos($match, '?') === 0) {
-            $GLOBALS['htmlCodes'][] = $id;
+            StorageHelper::add('htmlCodes', $id);
         } else {
-            $GLOBALS['quotedStrings'][] = $id;
+            StorageHelper::add('quotedStrings', $id);
         }
 
         return static::COMP.static::SUBST.$id.static::SUBST.static::COMP;
@@ -486,7 +486,7 @@ class Sbp
 
     public static function replaceStrings($content)
     {
-        foreach ($GLOBALS['replaceStrings'] as $id => $string) {
+        foreach (StorageHelper::all('replaceStrings') as $id => $string) {
             $content = str_replace(static::COMP.static::SUBST.$id.static::SUBST.static::COMP, $string, $content);
         }
 
@@ -525,10 +525,7 @@ class Sbp
     {
         static::init();
 
-        $GLOBALS['replaceStrings'] = array();
-        $GLOBALS['htmlCodes'] = array();
-        $GLOBALS['quotedStrings'] = array();
-        $GLOBALS['commentStrings'] = array();
+        StorageHelper::init();
 
         return static::loadPlugins($content);
     }
