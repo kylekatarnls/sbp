@@ -6,17 +6,17 @@ class Indentation
 {
     protected static function findLastBlock(&$line, array $blocks)
     {
-        $pos = false;
+        $position = false;
         foreach ($blocks as $block) {
             if (preg_match('#(?<![a-zA-Z0-9$_])'.$block.'(?![a-zA-Z0-9_])#s', $line, $match, PREG_OFFSET_CAPTURE)) {
-                $p = $match[0][1] + 1;
-                if ($pos === false || $p > $pos) {
-                    $pos = $p;
+                $pos = $match[0][1] + 1;
+                if ($position === false || $pos > $position) {
+                    $position = $pos;
                 }
             }
         }
 
-        return $pos;
+        return $position;
     }
 
     protected static function isBlock(&$line, &$grouped, $iRead, $pattern)
@@ -97,9 +97,9 @@ class Indentation
                             }
                             $previousWrite .= '}';
                         } else {
-                            $s = strlen(ltrim($line));
-                            if ($s && ($d = strlen($line) - $s) > 0) {
-                                $line = substr($line, 0, $d).'} '.substr($line, $d);
+                            $length = strlen(ltrim($line));
+                            if ($length && ($diff = strlen($line) - $length) > 0) {
+                                $line = substr($line, 0, $diff).'} '.substr($line, $diff);
                             } else {
                                 $line = '}'.$line;
                             }
