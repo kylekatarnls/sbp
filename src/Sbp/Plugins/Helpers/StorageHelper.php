@@ -35,6 +35,7 @@ class StorageHelper
         }
         $id = count(static::$storage[$key]);
         static::$storage[$key][$id] = $value;
+
         return $id;
     }
 }
