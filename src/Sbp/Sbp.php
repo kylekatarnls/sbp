@@ -327,16 +327,16 @@ class Sbp
         if (is_array($match)) {
             $match = $match[0];
         }
-        $id = StorageHelper::add('replaceStrings', $match);
+        $index = StorageHelper::add('replaceStrings', $match);
         if (in_array(substr($match, 0, 1), array('/', '#'))) {
-            StorageHelper::add('commentStrings', $id);
+            StorageHelper::add('commentStrings', $index);
         } elseif (strpos($match, '?') === 0) {
-            StorageHelper::add('htmlCodes', $id);
+            StorageHelper::add('htmlCodes', $index);
         } else {
-            StorageHelper::add('quotedStrings', $id);
+            StorageHelper::add('quotedStrings', $index);
         }
 
-        return static::COMP.static::SUBST.$id.static::SUBST.static::COMP;
+        return static::COMP.static::SUBST.$index.static::SUBST.static::COMP;
     }
 
     protected static function validSubst($motif = '[0-9]+')
@@ -355,19 +355,19 @@ class Sbp
         return '([\'"]).*(?<!'.$antislash.')(?:'.$antislash.$antislash.')*\\1';
     }
 
-    public static function fileParse($from, $to = null)
+    public static function fileParse($source, $destination = null)
     {
-        if (is_null($to)) {
-            $to = $from;
+        if (is_null($destination)) {
+            $destination = $source;
         }
-        if (!is_readable($from)) {
-            throw new SbpException($from.' is not readable, try :\nchmod '.FileHelper::matchingLetter($from).'+r '.$from, 1);
+        if (!is_readable($source)) {
+            throw new SbpException($source.' is not readable, try :\nchmod '.FileHelper::matchingLetter($source).'+r '.$source, 1);
         }
-        if (!is_writable($dir = dirname($to))) {
+        if (!is_writable($dir = dirname($destination))) {
             throw new SbpException($dir.' is not writable, try :\nchmod '.FileHelper::matchingLetter($dir).'+w '.$dir, 1);
         }
-        static::$lastParsedFile = $from;
-        $writed = file_put_contents($to, static::parse(file_get_contents($from)));
+        static::$lastParsedFile = $source;
+        $writed = file_put_contents($destination, static::parse(file_get_contents($source)));
         static::$lastParsedFile = null;
 
         return $writed;
@@ -388,9 +388,6 @@ class Sbp
     {
         $file = preg_replace('#(\.sbp)?(\.php)?$#', '', $file);
         $sbpFile = $file.'.sbp.php';
-        $callback = is_null(static::$callbackWriteIn)
-            ? 'sha1'
-            : static::$callbackWriteIn;
 
         $phpFile = static::phpFile($file);
         if (!file_exists($phpFile)) {
@@ -450,7 +447,7 @@ class Sbp
             }, $content);
         }
 
-        return substr($search, 0, 1) === '#'
+        return in_array(substr($search, 0, 1), array('#', '`'))
             ? preg_replace($search, $replace, $content)
             : str_replace($search, $replace, $content);
     }
@@ -505,7 +502,7 @@ class Sbp
                 continue;
             }
             if (is_string($replace) && !is_callable($replace)) {
-                throw new SbpException($replace.' is not callable.', 1);
+                throw new SbpException('Error in '.$name.': '.$replace.' is not callable.', 1);
             }
             $pluginResult = is_array($replace)
                 ? static::replace($content, $replace)
