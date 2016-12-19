@@ -286,7 +286,9 @@ class Sbp
             $container = preg_replace('#([/\\\\])(?:[^/\\\\\\.]+)(\\.[^/\\\\]+?)$#', '$1$2.container', FileHelper::cleanPath($file));
             $container = file_exists($container) ? file_get_contents($container) : '{content}';
         }
-        $camelCase = preg_replace_callback('#[-_]([a-z])#', function ($match) { return strtoupper($match[1]); }, $name);
+        $camelCase = preg_replace_callback('#[-_]([a-z])#', function ($match) {
+            return strtoupper($match[1]);
+        }, $name);
         $replace = array(
             '{file}' => $file,
             '{basename}' => $basename,
@@ -414,8 +416,6 @@ class Sbp
         }
         if (!static::fileExists($file, $phpFile)) {
             throw new SbpException($file.' not found', 1);
-
-            return false;
         }
 
         return include $phpFile;
@@ -428,8 +428,6 @@ class Sbp
         }
         if (!static::fileExists($file, $phpFile)) {
             throw new SbpException($file.' not found', 1);
-
-            return false;
         }
 
         return include_once $phpFile;
