@@ -283,7 +283,7 @@ class Sbp
             $name = preg_replace('#\..+$#', '', $basename);
         }
         if (is_null($container)) {
-            $container = preg_replace('#([/\\\\])(?:[^/\\\\]+)(\..+?)$#', '$1$2.container', FileHelper::cleanPath($file));
+            $container = preg_replace('#([/\\\\])(?:[^/\\\\\\.]+)(\\.[^/\\\\]+?)$#', '$1$2.container', FileHelper::cleanPath($file));
             $container = file_exists($container) ? file_get_contents($container) : '{content}';
         }
         $camelCase = preg_replace_callback('#[-_]([a-z])#', function ($match) { return strtoupper($match[1]); }, $name);
