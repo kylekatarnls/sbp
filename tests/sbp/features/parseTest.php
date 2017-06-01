@@ -38,8 +38,14 @@ class ParseTest extends TestCase
                     strpos($errors, "Parse error: syntax error, unexpected ')'") === 0 ||
                     strpos($errors, "Fatal error: syntax error, unexpected ')'") === 0
                 ),
-                'The PHP syntax should be valid, errors found in:'."\n$file\n$errors"
+                'The PHP syntax should not be valid, expected errors not found in:'."\n$file\n$errors"
             );
+
+            return;
+        }
+        if (defined('HHVM_VERSION')) {
+            $this->assertTrue(trim($errors) === '', 'The PHP syntax should be valid, errors found in:'."\n$file\n$errors");
+
             return;
         }
         $this->assertTrue(strpos($errors, 'No syntax errors detected') === 0, 'The PHP syntax should be valid, errors found in:'."\n$file\n$errors");
