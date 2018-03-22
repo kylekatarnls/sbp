@@ -16,5 +16,5 @@ SBP allow you to write a shorter code than PHP wich is replaced just in time by 
 
 -------------------------------
 
-The documentation (french) :
+The documentation (english/french) :
 [http://sbp.selfbuild.fr/](http://sbp.selfbuild.fr/)
