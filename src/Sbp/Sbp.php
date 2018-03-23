@@ -458,10 +458,12 @@ class Sbp
 
         foreach ($replace as $search => $replace) {
             $catched = false;
+
             try {
                 $content = static::replaceWith($content, $search, $replace);
             } catch (\Exception $e) {
                 $catched = true;
+
                 throw new SbpException('Replacement error: \''.$e->getMessage()."' in:\n".$search."\nwith:\n".var_export($replace, true), 1, $e);
             }
             if (!$catched && preg_last_error()) {
