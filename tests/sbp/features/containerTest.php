@@ -1,6 +1,7 @@
 <?php
 
 use Sbp\Sbp;
+use PHPUnit\Framework\TestCase;
 
 class XBase
 {
@@ -10,7 +11,7 @@ class XBase
     }
 }
 
-class ContainerTest extends \PHPUnit_Framework_TestCase
+class ContainerTest extends TestCase
 {
 	public function testContainer()
 	{

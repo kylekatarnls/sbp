@@ -1,6 +1,8 @@
 <?
 
-MathTest:\PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+MathTest:TestCase
 
 	+testSomeCalcs
 

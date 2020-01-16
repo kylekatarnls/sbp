@@ -20,16 +20,15 @@
     }
   ],
   "require": {
-    "php": ">=5.4.0"
+    "php": ">=5.5.0"
   },
   "require-dev": {
-    "phpunit/phpunit": "~4.0",
-    "illuminate/support": "4.0.*",
-    "codeclimate/php-test-reporter": "dev-master"
+    "phpunit/phpunit": "^4.8.36",
+    "illuminate/support": "4.0.*"
   },
   "autoload": {
-    "psr-0": {
-      "Sbp": "src"
+    "psr-4": {
+      "Sbp\\": "src/Sbp"
     }
   }
 }
