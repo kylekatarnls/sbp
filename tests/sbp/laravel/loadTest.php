@@ -3,6 +3,7 @@
 use Sbp\Laravel\ClassLoader;
 use Sbp\Sbp;
 use Sbp\SbpException;
+use PHPUnit\Framework\TestCase;
 
 class ClassLoaderClone extends ClassLoader
 {
@@ -12,7 +13,7 @@ class ClassLoaderClone extends ClassLoader
     }
 }
 
-class LoadTest extends \PHPUnit_Framework_TestCase
+class LoadTest extends TestCase
 {
     public function testLaravelLoader()
     {

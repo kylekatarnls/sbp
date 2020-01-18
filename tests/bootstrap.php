@@ -6,6 +6,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use Sbp\SbpException;
 use Sbp\Sbp as InitialSbp;
+use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 
 class Sbp extends InitialSbp
 {
@@ -40,7 +41,7 @@ class Sbp extends InitialSbp
     }
 }
 
-class TestCase extends \PHPUnit_Framework_TestCase
+class TestCase extends PHPUnitTestCase
 {
     const WRAP_LINES = 5;
     const IGNORE_BRACES = true;
@@ -115,7 +116,7 @@ class TestCase extends \PHPUnit_Framework_TestCase
     }
 }
 
-class TestCompileCase extends \PHPUnit_Framework_TestCase
+class TestCompileCase extends PHPUnitTestCase
 {
     protected function getTmp()
     {
